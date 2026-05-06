@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TERE · Registrar Administrador</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0b0d11;
+      --bg2: #12151a;
+      --accent: #4dabff;
+      --green: #40e0d0;
+      --red: #ff5e7e;
+      --text: #d8dee9;
+      --muted: #717b91;
+      --border: #2d3544;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--bg2);
+      border-bottom: 2px solid var(--accent);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--accent);
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid #2d3544;
+      background: #1a1e26;
+      color: var(--muted);
+      transition: all .15s;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .clock {
+      font-family: monospace;
+      font-size: 1rem;
+      background: #0a0c10;
+      padding: 4px 12px;
+      border-radius: 32px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+    }
+
+    /* MAIN LAYOUT */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 24px -12px rgba(0,0,0,0.5);
+    }
+
+    .card-header {
+      background: rgba(0,0,0,0.2);
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .card-body {
+      padding: 28px 24px;
+    }
+
+    /* FORM GRID */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px 28px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+
+    input, select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(77, 171, 255, 0.2);
+    }
+
+    input::placeholder {
+      color: #3a4050;
+    }
+
+    .error-msg {
+      font-size: 0.7rem;
+      color: var(--red);
+      margin-top: 4px;
+      display: none;
+    }
+
+    /* action buttons */
+    .actions {
+      margin-top: 32px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      border-radius: 40px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 2px 6px rgba(77,171,255,0.2);
+    }
+
+    .btn-primary:hover {
+      background: #3b8ad9;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--border);
+      background: transparent;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg2);
+      border-left: 4px solid var(--accent);
+      backdrop-filter: blur(8px);
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      max-width: 320px;
+    }
+
+    #toast.success {
+      border-left-color: var(--green);
+    }
+    #toast.error {
+      border-left-color: var(--red);
+    }
+
+    /* INFO */
+    .info-badge {
+      background: #0f1118;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 24px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .info-badge code {
+      background: #00000040;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+
+    hr {
+      border-color: var(--border);
+      margin: 12px 0;
+    }
+
+    @media (max-width: 700px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .field-group.full-width {
+        grid-column: span 1;
+      }
+      .container {
+        padding: 20px 16px;
+      }
+      .card-body {
+        padding: 20px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TERE · <span>Administración</span></div>
+  <div class="clock" id="liveClock">--:--:--</div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2>👑 Registrar nuevo administrador</h2>
+      <p>Complete los datos para crear un usuario con rol ADMIN en el sistema de estacionamiento</p>
+    </div>
+    <div class="card-body">
+      <form id="registerAdminForm">
+        <div class="form-grid">
+          <!-- Nombre completo -->
+          <div class="field-group full-width">
+            <label>Nombre completo *</label>
+            <input type="text" id="adminNombre" placeholder="Ej: Laura Méndez García" autocomplete="off" maxlength="100">
+            <div class="error-msg" id="errorNombre">El nombre es obligatorio (máx 100 caracteres)</div>
+          </div>
+
+          <!-- Email -->
+          <div class="field-group">
+            <label>Correo electrónico *</label>
+            <input type="email" id="adminEmail" placeholder="admin@estacionamiento.com" autocomplete="off">
+            <div class="error-msg" id="errorEmail">Correo inválido o ya registrado</div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="field-group">
+            <label>Contraseña *</label>
+            <input type="password" id="adminPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+            <div class="error-msg" id="errorPass">La contraseña es obligatoria (mín 6 caracteres)</div>
+          </div>
+
+          <!-- Sede (obligatoria según DTO) -->
+          <div class="field-group">
+            <label>Sede *</label>
+            <select id="adminSede">
+              <option value="">-- Seleccionar sede --</option>
+              <option value="1">🏢 Zona Mercado (ID 1)</option>
+              <option value="2">🏬 Zona Comercial (ID 2)</option>
+              <option value="3">🏙️ Zona Concurrida (ID 3)</option>
+            </select>
+            <div class="error-msg" id="errorSede">Debe seleccionar una sede válida</div>
+          </div>
+
+          <!-- Rol (fijo ADMIN pero se puede mostrar) -->
+          <div class="field-group">
+            <label>Rol del sistema</label>
+            <select id="adminRol" disabled style="opacity:0.8; cursor:not-allowed;">
+              <option value="ADMIN" selected>ADMINISTRADOR (ADMIN)</option>
+            </select>
+            <input type="hidden" id="rolHidden" value="ADMIN">
+            <div style="font-size:0.65rem; color:var(--muted); margin-top: 4px;">* El rol será ADMIN por defecto</div>
+          </div>
+
+          <!-- ID de usuario (solo lectura) -->
+          <div class="field-group">
+            <label>ID (automático)</label>
+            <input type="text" value="Se asignará al guardar" disabled style="background:#0c0e13; color:#5f6a84;">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-outline" onclick="limpiarFormulario()">Limpiar campos</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">➕ CREAR ADMINISTRADOR</button>
+        </div>
+      </form>
+
+      <div class="info-badge">
+        <span>🔐</span>
+        <div>
+          <strong>Endpoint esperado:</strong> <code>POST /api/usuarios/guardar</code><br>
+          Esta interfaz envía los datos según <strong>UsuarioDto</strong>: nombre, email, password, idSede, rol (ADMIN).
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // Configuración
+  const API_BASE = 'https://jellyfish-app-b5lgm.ondigitalocean.app';
+  const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+  };
+
+  // DOM elements
+  const nombreInput = document.getElementById('adminNombre');
+  const emailInput = document.getElementById('adminEmail');
+  const passInput = document.getElementById('adminPassword');
+  const sedeSelect = document.getElementById('adminSede');
+  const submitBtn = document.getElementById('submitBtn');
+  const registerForm = document.getElementById('registerAdminForm');
+
+  // Errores dinámicos
+  const errorNombre = document.getElementById('errorNombre');
+  const errorEmail = document.getElementById('errorEmail');
+  const errorPass = document.getElementById('errorPass');
+  const errorSede = document.getElementById('errorSede');
+
+  // Reloj en tiempo real
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('es-MX', { hour12: false });
+    const clockDiv = document.getElementById('liveClock');
+    if (clockDiv) clockDiv.textContent = timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Helper: Toast
+  let toastTimeout = null;
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = type;
+    toast.style.display = 'block';
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3500);
+  }
+
+  // Validaciones locales
+  function validateForm() {
+    let isValid = true;
+
+    // nombre
+    const nombre = nombreInput.value.trim();
+    if (!nombre || nombre.length < 2 || nombre.length > 100) {
+      errorNombre.style.display = 'block';
+      isValid = false;
+    } else {
+      errorNombre.style.display = 'none';
+    }
+
+    // email
+    const email = emailInput.value.trim();
+    const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      errorEmail.style.display = 'block';
+      isValid = false;
+    } else {
+      errorEmail.style.display = 'none';
+    }
+
+    // password
+    const password = passInput.value;
+    if (!password || password.length < 6) {
+      errorPass.style.display = 'block';
+      isValid = false;
+    } else {
+      errorPass.style.display = 'none';
+    }
+
+    // sede
+    const sedeId = sedeSelect.value;
+    if (!sedeId || isNaN(parseInt(sedeId))) {
+      errorSede.style.display = 'block';
+      isValid = false;
+    } else {
+      errorSede.style.display = 'none';
+    }
+
+    return isValid;
+  }
+
+  // Limpiar formulario
+  function limpiarFormulario() {
+    nombreInput.value = '';
+    emailInput.value = '';
+    passInput.value = '';
+    sedeSelect.value = '';
+    // resetear errores visuales
+    [errorNombre, errorEmail, errorPass, errorSede].forEach(err => err.style.display = 'none');
+    nombreInput.focus();
+    showToast('Campos limpiados', 'info');
+  }
+
+  // Función principal para registrar administrador
+  async function registrarAdministrador(event) {
+    event.preventDefault();
+
+    // Validación frontend
+    if (!validateForm()) {
+      showToast('❌ Revise los campos resaltados', 'error');
+      return;
+    }
+
+    const nombre = nombreInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+    const idSede = parseInt(sedeSelect.value);
+    const rol = 'ADMIN';   // Siempre ADMIN, respetando el DTO y lógica de negocio
+
+    // Construir payload según UsuarioDto (idUsuario no es necesario, backend lo genera)
+    const payload = {
+      nombre: nombre,
+      email: email,
+      password: password,
+      idSede: idSede,
+      rol: rol
+    };
+
+    // Deshabilitar botón mientras se procesa
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = '⏳ Registrando...';
+
+    try {
+      const response = await fetch(`${API_BASE}/api/usuarios/guardar`, {
+        method: 'POST',
+        headers: DEFAULT_HEADERS,
+        body: JSON.stringify(payload)
+      });
+
+      let responseBody = null;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        responseBody = await response.json();
+      } else {
+        responseBody = await response.text();
+      }
+
+      if (!response.ok) {
+        // Manejo de errores: si es un 400 con mensaje (correo duplicado, validación)
+        let errorMessage = `Error ${response.status}`;
+        if (typeof responseBody === 'string') errorMessage = responseBody;
+        else if (responseBody && (responseBody.message || responseBody.mensaje)) 
+          errorMessage = responseBody.message || responseBody.mensaje;
+        else if (responseBody && typeof responseBody === 'object') 
+          errorMessage = JSON.stringify(responseBody);
+        
+        throw new Error(errorMessage || 'No se pudo crear el administrador');
+      }
+
+      // Éxito: respuesta esperada "Usuario creado exitosamente" o mensaje similar
+      const successMsg = typeof responseBody === 'string' ? responseBody : (responseBody?.mensaje || 'Administrador registrado con éxito');
+      showToast(`✅ ${successMsg}`, 'success');
+      
+      // limpiar formulario después del exito
+      limpiarFormulario();
+
+    } catch (err) {
+      console.error('Error en registro:', err);
+      let errorText = err.message || 'Fallo en la conexión con el servidor';
+      // si el error contiene "email already exists" o similar mejorar mensaje
+      if (errorText.toLowerCase().includes('email') && (errorText.toLowerCase().includes('exists') || errorText.toLowerCase().includes('duplicado'))) {
+        errorText = 'El correo electrónico ya está registrado. Use otro email.';
+        errorEmail.style.display = 'block';
+        errorEmail.innerText = '✗ Ya existe un usuario con este correo';
+      } else if (errorText.toLowerCase().includes('sede')) {
+        errorSede.style.display = 'block';
+        errorSede.innerText = 'Sede inválida o no existente en BD';
+      } else {
+        // feedback general
+        showToast(`⚠️ Error: ${errorText.substring(0, 100)}`, 'error');
+      }
+      // Mostrar toast de error general si no es específico
+      if (!errorText.toLowerCase().includes('email')) {
+        showToast(`❌ Fallo: ${errorText.substring(0, 120)}`, 'error');
+      } else {
+        // ya se mostró error email en campo, también toast opcional
+        showToast(`❌ ${errorText}`, 'error');
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = originalText;
+    }
+  }
+
+  // Event listeners
+  registerForm.addEventListener('submit', registrarAdministrador);
+
+  // Validaciones en tiempo real opcionales (mejora UX)
+  nombreInput.addEventListener('input', () => {
+    if (nombreInput.value.trim().length >= 2) errorNombre.style.display = 'none';
+    else errorNombre.style.display = 'block';
+  });
+  emailInput.addEventListener('input', () => {
+    const email = emailInput.value.trim();
+    const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+    if (email && emailRegex.test(email)) errorEmail.style.display = 'none';
+    else if (email.length > 0) errorEmail.style.display = 'block';
+    else errorEmail.style.display = 'none';
+  });
+  passInput.addEventListener('input', () => {
+    if (passInput.value.length >= 6) errorPass.style.display = 'none';
+    else if (passInput.value.length > 0) errorPass.style.display = 'block';
+    else errorPass.style.display = 'none';
+  });
+  sedeSelect.addEventListener('change', () => {
+    if (sedeSelect.value) errorSede.style.display = 'none';
+    else errorSede.style.display = 'block';
+  });
+
+  // Pequeño helper, mostrar en consola la configuración actual (debug)
+  console.log('🌐 API endpoint activo:', `${API_BASE}/api/usuarios/guardar`);
+  console.log('📦 Payload esperado: { nombre, email, password, idSede, rol }');
+
+  // Prevenir envío con tecla Enter inesperado si hay algún campo vacío
+  window.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && document.activeElement && document.activeElement.tagName === 'INPUT') {
+      if (registerForm && !submitBtn.disabled) {
+        e.preventDefault();
+        registerForm.dispatchEvent(new Event('submit'));
+      }
+    }
+  });
+</script>
+</body>
+</html>

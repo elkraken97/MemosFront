@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Gestión de Sedes</title>
+<style>
+:root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:700;color:var(--accent)}
+.nav-links{display:flex;gap:6px}
+.nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.content{flex:1;padding:24px;display:flex;flex-direction:column;gap:20px;max-width:1000px;margin:0 auto;width:100%}
+.page-title{font-size:18px;font-weight:700;color:var(--accent);border-bottom:1px solid #2d3544;padding-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+input,select{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px}
+input:focus,select:focus{border-color:var(--accent)}
+.lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.btn{padding:10px 18px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:12px;text-transform:uppercase}
+.btn-p{background:var(--accent);color:#000}.btn-d{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn-sm{padding:6px 12px;font-size:10px}
+.card{background:var(--bg2);border:1px solid #2d3544;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:4px}
+.card-header{font-size:14px;font-weight:700;color:var(--accent);border-bottom:1px solid #2d3544;padding-bottom:8px;margin-bottom:12px}
+.sede-list{display:flex;flex-direction:column;gap:8px}
+.sede-item{background:var(--bg);border:1px solid #2d3544;border-radius:6px;padding:14px;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+.sede-item:hover{border-color:var(--accent)}
+.sede-item.active{border-color:var(--green);background:rgba(64,224,208,.05)}
+.sede-info{display:flex;flex-direction:column;gap:4px}
+.sede-name{font-weight:700;color:var(--text);font-size:14px}
+.sede-meta{color:var(--muted);font-size:11px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
+#toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
+.empty-state{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+@media(max-width:750px){ .layout-grid{grid-template-columns:1fr !important} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TERE · <span style="color:var(--muted);font-size:13px" id="sede-nombre">--</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn" href="index.html">Kiosco</a>
+    <a class="nav-btn" href="pension.html">Pensión</a>
+    <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn active" href="sedes.html">Sedes</a>
+    <a class="nav-btn" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div id="clock" style="color:var(--accent)">--:--:--</div>
+</header>
+
+<div class="content">
+
+  <div class="page-title">
+    <span>⚙️ Gestión de Sedes</span>
+    <span style="font-size:11px;color:var(--muted);font-weight:400" id="total-sedes">-- sedes</span>
+  </div>
+
+  <div class="layout-grid" style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start">
+    
+    <!-- Formulario de Registro -->
+    <div class="card">
+      <div class="card-header">➕ Nueva Sede</div>
+      <div>
+        <div class="lbl">Nombre de la Sede</div>
+        <input type="text" id="nueva-sede-nombre" placeholder="Ej: Zona Plaza">
+      </div>
+      <div>
+        <div class="lbl">Ubicación / Dirección</div>
+        <input type="text" id="nueva-sede-ubicacion" placeholder="Calle, ciudad...">
+      </div>
+      <button class="btn btn-p" onclick="registrarSede()">REGISTRAR SEDE</button>
+    </div>
+
+    <!-- Lista de Sedes -->
+    <div class="card">
+      <div class="card-header">📋 Sedes Disponibles</div>
+      <div class="sede-list" id="sede-list">
+        <div class="empty-state">Cargando sedes...</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
+const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
+let sedes=[],sedeIdActual=null;
+
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+
+function toast(m,t='info'){const e=document.getElementById('toast');e.textContent=m;e.className=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+
+async function api(path,options={}){
+  const headers={...apiHeaders,...(options.headers||{})};
+  Object.keys(headers).forEach(k=>headers[k]===undefined&&delete headers[k]);
+  const r=await fetch(`${API}${path}`,{...options,headers});
+  if(!r.ok){let msg=`HTTP ${r.status}`;try{const d=await r.json();msg=d.message||d.mensaje||JSON.stringify(d)}catch(e){}throw new Error(msg)}
+  if(r.status===204)return null;
+  const text=await r.text();if(!text)return null;
+  try{return JSON.parse(text)}catch(e){return text}
+}
+
+function renderSedes(){
+  const box=document.getElementById('sede-list');
+  document.getElementById('total-sedes').textContent=sedes.length+' sedes';
+  if(!sedes.length){box.innerHTML='<div class="empty-state">❌ No hay sedes disponibles en el sistema.</div>';return}
+
+  box.innerHTML=sedes.map(s=>{
+    const esActiva = s.idSede === sedeIdActual;
+    return `
+    <div class="sede-item ${esActiva ? 'active' : ''}">
+      <div class="sede-info">
+        <div class="sede-name">${s.nombre} ${esActiva ? '<span style="color:var(--green);font-size:10px;margin-left:8px">● VINCULADA</span>' : ''}</div>
+        <div class="sede-meta">📍 ${s.ubicacion || 'Sin ubicación registrada'}</div>
+        <div class="sede-meta">ID: ${s.idSede}</div>
+      </div>
+      <div class="sede-actions">
+        <button class="btn ${esActiva ? 'btn-d' : 'btn-p'} btn-sm" onclick="vincularSede(${s.idSede})">
+          ${esActiva ? 'OPERAR AQUÍ' : 'VINCULAR'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function cargarSedes(){
+  try{
+    sedes=await api('/api/sedes',{headers:{'Content-Type':undefined}})||[];
+    renderSedes();
+  }catch(e){
+    document.getElementById('sede-list').innerHTML='<div class="empty-state" style="color:var(--red)">❌ Error al conectar con el servidor</div>';
+    console.error(e);
+  }
+}
+
+async function registrarSede(){
+  const nombre = document.getElementById('nueva-sede-nombre').value.trim();
+  const ubicacion = document.getElementById('nueva-sede-ubicacion').value.trim();
+
+  if(!nombre || !ubicacion) return toast('Completa todos los campos','error');
+
+  try {
+    // Nota: El backend requiere implementar POST /api/sedes para procesar esto
+    await api('/api/sedes', {
+      method: 'POST',
+      body: JSON.stringify({ nombre, ubicacion })
+    });
+    
+    toast('✅ Sede registrada correctamente','success');
+    document.getElementById('nueva-sede-nombre').value = '';
+    document.getElementById('nueva-sede-ubicacion').value = '';
+    cargarSedes();
+  } catch(e) {
+    toast(e.message || 'Error al registrar sede','error');
+  }
+}
+
+async function vincularSede(id){
+  try{
+    const res = await api('/api/sedes/vincular', {
+      method: 'POST',
+      body: JSON.stringify({idSede: id})
+    });
+
+    let sesion = {};
+    try { sesion = JSON.parse(localStorage.getItem('tere_session') || '{}'); } catch(e) {}
+    sesion.sedeId = res.idSede;
+    localStorage.setItem('tere_session', JSON.stringify(sesion));
+
+    sedeIdActual = res.idSede;
+    renderSedes();
+    toast(`✅ ${res.mensaje}: ${res.sedeNombre}`, 'success');
+
+    setTimeout(() => {
+      if(confirm('¿Ir al Kiosco de esta sede ahora?')) window.location.href = 'index.html';
+    }, 800);
+
+  }catch(e){
+    toast(e.message || 'Error al vincular sede', 'error');
+  }
+}
+
+// Init
+(function(){
+  try{
+    const sesion = JSON.parse(localStorage.getItem('tere_session') || '{}');
+    sedeIdActual = sesion.sedeId;
+  }catch(e){}
+  cargarSedes();
+})();
+</script>
+</body>
+</html>

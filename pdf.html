@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Descargar Reporte</title>
+<style>
+:root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-size:20px;font-weight:700;color:var(--accent)}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+#clock{color:var(--accent);font-family:monospace}
+.content{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+.card{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--accent);border-radius:10px;padding:32px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px;text-align:center}
+.card-title{font-size:20px;font-weight:700;color:var(--accent);padding-bottom:12px;border-bottom:1px solid #2d3544}
+select{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:12px;color:var(--text);font-size:14px;outline:none}
+select:focus{border-color:var(--accent)}
+.btn{width:100%;padding:14px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:14px;text-transform:uppercase}
+.btn-p{background:var(--accent);color:#000}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
+#toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TERE · <span id="sede-nombre">Reportes</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn" href="index.html">Kiosco</a>
+    <a class="nav-btn" href="pension.html">Pensión</a>
+    <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn" href="sedes.html">Sedes</a>
+    <a class="nav-btn" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn active" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div id="clock" style="color:var(--accent)">--:--:--</div>
+</header>
+
+<div class="content">
+<div class="card">
+  <div class="card-title">📊 Reporte Mensual</div>
+  <select id="sede">
+    <option value="">-- Seleccionar sede --</option>
+    <option value="1">Zona Mercado</option>
+    <option value="2">Zona Comercial</option>
+    <option value="3">Zona Concurrida</option>
+  </select>
+  <button class="btn btn-p" onclick="descargar()">DESCARGAR PDF</button>
+</div>
+</div>
+<div id="toast"></div>
+
+<script>
+const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
+
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+
+function toast(m,t){
+...
+  const e=document.getElementById('toast');
+  e.textContent=m;e.className=t;e.style.display='block';
+  setTimeout(()=>e.style.display='none',2500);
+}
+
+async function descargar(){
+  const id=document.getElementById('sede').value;
+  if(!id)return toast('Selecciona una sede','error');
+  try{
+    const r=await fetch(`${API}/api/reportes/pdf/${id}`,{headers:{'ngrok-skip-browser-warning':'true'}});
+    if(!r.ok)throw new Error('Error '+r.status);
+    const blob=await r.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`reporte_sede_${id}.pdf`;
+    a.click();
+    toast('✅ Descargado','success');
+  }catch(e){toast('❌ '+e.message,'error')}
+}
+</script>
+</body>
+</html>

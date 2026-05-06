@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="integrantes.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    :root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+    header.top-nav{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-family:system-ui,sans-serif}
+    .logo-nav{font-size:20px;font-weight:700;color:var(--accent)}
+    .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+    .nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+    .nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+    #clock{color:var(--accent);font-family:monospace}
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+      <div class="logo-nav">TERE · <span style="color:var(--muted);font-size:13px">Equipo</span></div>
+      <nav class="nav-links">
+        <a class="nav-btn" href="../index.html">Kiosco</a>
+        <a class="nav-btn" href="../pension.html">Pensión</a>
+        <a class="nav-btn" href="../cliente.html">Cliente</a>
+        <a class="nav-btn" href="../registros.html">Registros</a>
+        <a class="nav-btn" href="../sedes.html">Sedes</a>
+        <a class="nav-btn" href="../tarifa.html">Tarifas</a>
+        <a class="nav-btn" href="../pdf.html">Reportes</a>
+        <a class="nav-btn" href="../registroCliente.html">Usuarios</a>
+        <a class="nav-btn" href="portada.html">Plus</a>
+        <a class="nav-btn active" href="integrantes.html">Equipo</a>
+      </nav>
+      <div id="clock">--:--:--</div>
+    </header>
+    <script>
+      setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+    </script>
+    
+    <div class="card">
+        <div class="head">
+            <div class="circle"></div>
+            <div class="img">
+                <img src="img/IMG_20230328_091633_968.webp" alt="">
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>Angie</h3>
+            <h4>Desarrolladora WEB</h4>
+            <p>Experta en focas</p>
+        </div>
+
+        <div class="contact">
+            <a href="#">Contact</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="head">
+            <div class="circle"></div>
+            <div class="img">
+                <img src="img/IMG-20231028-WA0018.jpg" alt="">
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>Azul</h3>
+            <h4>Desarrolladora BACKEND JAVA</h4>
+            <p>Loquita del centro Harry Potter</p>
+        </div>
+
+        <div class="contact">
+            <a href="#">Contact</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="head">
+            <div class="circle"></div>
+            <div class="img">
+                <img src="img/M30.jpeg" alt="">
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>Memo</h3>
+            <h4>Lider, Desarrollador BACKEND, Guapo, Poderoso, Asombroso, Muy Hermoso</h4>
+            <p>No se como lo hice</p>
+        </div>
+
+        <div class="contact">
+            <a href="#">Contact0</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="head">
+            <div class="circle"></div>
+            <div class="img">
+                <img src="img/IMG-20231028-WA0054.jpg" alt="">
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>Alfredo</h3>
+            <h4>Tryhard, Desarrollador BACKEND, Analista de Datos, Experto en APIs y Frameworks</h4>
+            <p>Vencio a un chino de 4 años</p>
+        </div>
+
+        <div class="contact">
+            <a href="#">Contact0</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="head">
+            <div class="circle"></div>
+            <div class="img">
+                <img src="img/Juan.jpeg" alt="">
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>Juan</h3>
+            <h4>Juan</h4>
+            <p>Juan</p>
+        </div>
+
+        <div class="contact">
+            <a href="#">Contact0</a>
+        </div>
+    </div>
+    <footer> <a href="portada.html">Regresar</a> </footer>
+</body>
+</html>

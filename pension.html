@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Registrar Pensión</title>
+<style>
+:root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:700;color:var(--accent)}
+.nav-links{display:flex;gap:6px}
+.nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.app{display:flex;flex:1;height:calc(100vh - 48px)}
+.sidebar{width:320px;background:var(--bg2);padding:15px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;border-right:1px solid #2d3544}
+.main{flex:1;padding:20px;display:flex;justify-content:center;align-items:flex-start;background:#0a0c10}
+input,select{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;color:var(--text);font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{width:100%;padding:12px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;text-transform:uppercase}
+.btn-p{background:var(--accent);color:#000}.btn-d{background:transparent;color:var(--red);border:1px solid var(--red)}
+.lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.info{background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;text-align:center;font-size:16px;font-weight:700;color:var(--accent)}
+.page-title{font-size:16px;font-weight:700;color:var(--accent);padding-bottom:8px;border-bottom:1px solid #2d3544}
+#parking{display:flex;flex-direction:column;gap:8px;background:#0f1115;padding:20px;border-radius:10px}
+.fila{display:flex;gap:8px;align-items:center;justify-content:center}
+.fila-lbl{width:35px;text-align:center;font-size:11px;color:rgba(255,255,255,.15);font-weight:700;letter-spacing:1px}
+.cajon{width:65px;height:65px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;gap:2px;border:2px solid transparent}
+.cajon.libre{background:rgba(16,185,129,.08);color:var(--green);border-color:rgba(16,185,129,.2)}
+.cajon.libre:hover{background:rgba(16,185,129,.18);transform:scale(1.05)}
+.cajon.ocupado{background:rgba(239,68,68,.08);color:var(--red);border-color:rgba(239,68,68,.15);cursor:not-allowed}
+.cajon.sel{background:rgba(77,171,255,.12);border-color:var(--accent);box-shadow:0 0 15px rgba(77,171,255,.25)}
+.cajon-icon{font-size:18px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
+#toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
+#no-sesion{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300;display:none}
+.alert-box{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--red);border-radius:8px;padding:30px;width:320px;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="no-sesion">
+  <div class="alert-box">
+    <div style="font-size:22px;font-weight:700;color:var(--red);margin-bottom:8px">Sin sesión</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Inicia sesión en el kiosco primero.</div>
+    <a href="index.html" class="btn btn-p" style="display:block;text-decoration:none;padding:12px">IR AL KIOSCO</a>
+  </div>
+</div>
+
+<header>
+  <div class="logo">TERE · <span style="color:var(--muted);font-size:13px" id="sede-nombre">--</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn" href="index.html">Kiosco</a>
+    <a class="nav-btn active" href="pension.html">Pensión</a>
+    <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn" href="sedes.html">Sedes</a>
+    <a class="nav-btn" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div id="clock" style="color:var(--accent)">--:--:--</div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="page-title">Registrar Pensionado</div>
+    <div><div class="lbl">Nombre</div><input type="text" id="np-nombre" placeholder="Juan Pérez"></div>
+    <div><div class="lbl">Placa</div><input type="text" id="np-placa" placeholder="ABC-123" maxlength="10" oninput="this.value=this.value.toUpperCase()"></div>
+    <div><div class="lbl">Teléfono</div><input type="text" id="np-tel" placeholder="2721234567"></div>
+    <div><div class="lbl">Email</div><input type="text" id="np-email" placeholder="correo@ejemplo.com"></div>
+    <div><div class="lbl">Vence</div><input type="date" id="np-fecha"></div>
+    <div><div class="lbl">Cajón seleccionado</div><div class="info" id="np-cajon">— Selecciona en mapa →</div></div>
+    <button class="btn btn-p" onclick="regPension()">REGISTRAR PENSIÓN</button>
+    <button class="btn btn-d" onclick="window.location.href='index.html'">← VOLVER AL KIOSCO</button>
+  </aside>
+  <main class="main">
+    <div id="parking"><div style="color:var(--muted);padding:40px">CARGANDO...</div></div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
+const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
+let sedeId=null,cajones=[],cajonSel=null,sesion=null;
+
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+
+function toast(m,t='info'){const e=document.getElementById('toast');e.textContent=m;e.className=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+
+async function api(path,options={}){
+  const headers={...apiHeaders,...(options.headers||{})};
+  Object.keys(headers).forEach(k=>headers[k]===undefined&&delete headers[k]);
+  const r=await fetch(`${API}${path}`,{...options,headers});
+  if(!r.ok){let msg=`HTTP ${r.status}`;try{const d=await r.json();msg=d.message||d.mensaje||JSON.stringify(d)}catch(e){}throw new Error(msg)}
+  if(r.status===204)return null;
+  const text=await r.text();
+  if(!text)return null;
+  try{return JSON.parse(text)}catch(e){return text}
+}
+
+function pintarMapa(){
+  const p=document.getElementById('parking');p.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;flex-direction:column;gap:8px;background:#0f1115;padding:20px;border-radius:10px';
+  const filas=[...new Set(cajones.map(c=>c.fila))];
+  filas.forEach(f=>{
+    const d=document.createElement('div');d.className='fila';
+    const l=document.createElement('div');l.className='fila-lbl';l.textContent='F'+f;d.appendChild(l);
+    cajones.filter(c=>c.fila==f).forEach(c=>{
+      const e=document.createElement('div');
+      e.className='cajon '+(c.disponible?'libre':'ocupado')+(cajonSel===c.idCajon?' sel':'');
+      e.innerHTML='<div class="cajon-icon">'+(c.disponible?'':'🚗')+'</div><div>'+c.numeroCajon+'</div>';
+      if(c.disponible)e.onclick=()=>{cajonSel=c.idCajon;document.getElementById('np-cajon').textContent=c.numeroCajon;pintarMapa()};
+      d.appendChild(e);
+    });wrap.appendChild(d);
+  });
+  p.appendChild(wrap);
+}
+
+async function cargar(){
+  try{
+    const r=await fetch(`${API}/api/cajones/${sedeId}`,{headers:{'ngrok-skip-browser-warning':'true'}});
+    cajones=await r.json();
+    pintarMapa();
+  }catch(e){
+    document.getElementById('parking').innerHTML='<div style="color:var(--red);padding:40px">ERROR AL CARGAR CAJONES</div>';
+  }
+}
+
+async function regPension(){
+  const n=document.getElementById('np-nombre').value.trim(),p=document.getElementById('np-placa').value.trim();
+  const t=document.getElementById('np-tel').value.trim(),e=document.getElementById('np-email').value.trim(),f=document.getElementById('np-fecha').value;
+  if(!n||!p||!f||!cajonSel)return toast('Completa todos los campos y selecciona un cajón','error');
+  try{
+    const res=await api('/api/pensiones/registrar',{method:'POST',body:JSON.stringify({nombre:n,placa:p,telefono:t,email:e,fechaFin:f,idCajon:cajonSel,idSede:sedeId})});
+    const c=cajones.find(x=>x.idCajon===cajonSel);if(c){c.disponible=false;c.placa=p}
+    cajonSel=null;
+    ['np-nombre','np-placa','np-tel','np-email','np-fecha'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('np-cajon').textContent='— Selecciona en mapa →';
+    pintarMapa();
+    toast(res?.mensaje||('Pensión registrada: '+n),'success');
+  }catch(err){toast(err.message||'No se pudo registrar pensión','error')}
+}
+
+// Init: check session
+(function(){
+  try{sesion=JSON.parse(localStorage.getItem('tere_session')||'null')}catch(e){}
+  if(!sesion?.sedeId){
+    document.getElementById('no-sesion').style.display='flex';
+    return;
+  }
+  sedeId=sesion.sedeId;
+  document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId]||('Sede '+sedeId);
+  cargar();
+})();
+</script>
+</body>
+</html>

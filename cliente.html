@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Registrar Cliente</title>
+<style>
+:root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:700;color:var(--accent)}
+.nav-links{display:flex;gap:6px}
+.nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.content{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+.card{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--accent);border-radius:10px;padding:28px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px}
+.card-title{font-size:18px;font-weight:700;color:var(--accent);padding-bottom:12px;border-bottom:1px solid #2d3544}
+input{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;color:var(--text);font-size:14px;outline:none}
+input:focus{border-color:var(--accent)}
+.btn{width:100%;padding:12px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;text-transform:uppercase}
+.btn-p{background:var(--accent);color:#000}.btn-d{background:transparent;color:var(--red);border:1px solid var(--red)}
+.lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
+#toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
+#no-sesion{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300;display:none}
+.alert-box{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--red);border-radius:8px;padding:30px;width:320px;text-align:center}
+.clientes-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.cliente-item{background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;font-size:12px}
+.cliente-nombre{font-weight:700;color:var(--text)}
+.cliente-meta{color:var(--muted);font-size:11px;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div id="no-sesion">
+  <div class="alert-box">
+    <div style="font-size:22px;font-weight:700;color:var(--red);margin-bottom:8px">Sin sesión</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Inicia sesión en el kiosco primero.</div>
+    <a href="index.html" class="btn btn-p" style="display:block;text-decoration:none;padding:12px">IR AL KIOSCO</a>
+  </div>
+</div>
+
+<header>
+  <div class="logo">TERE · <span style="color:var(--muted);font-size:13px" id="sede-nombre">--</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn" href="index.html">Kiosco</a>
+    <a class="nav-btn" href="pension.html">Pensión</a>
+    <a class="nav-btn active" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn" href="sedes.html">Sedes</a>
+    <a class="nav-btn" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div id="clock" style="color:var(--accent)">--:--:--</div>
+</header>
+
+<div class="content">
+  <div style="display:flex;gap:24px;width:100%;max-width:900px;align-items:flex-start">
+
+    <!-- Formulario -->
+    <div class="card" style="flex:0 0 440px">
+      <div class="card-title">Registrar Cliente</div>
+      <div><div class="lbl">Nombre completo</div><input type="text" id="cl-nombre" placeholder="Juan Pérez"></div>
+      <div><div class="lbl">Teléfono</div><input type="text" id="cl-tel" placeholder="2721234567" maxlength="15"></div>
+      <div><div class="lbl">Email (opcional)</div><input type="text" id="cl-email" placeholder="correo@ejemplo.com"></div>
+      <button class="btn btn-p" onclick="registrarCliente()">REGISTRAR CLIENTE</button>
+      <button class="btn btn-d" onclick="window.location.href='index.html'">← VOLVER AL KIOSCO</button>
+    </div>
+
+    <!-- Lista de registrados en sesión -->
+    <div class="card" style="flex:1;min-width:0">
+      <div class="card-title">Registrados esta sesión</div>
+      <div class="clientes-list" id="clientes-list">
+        <div style="font-size:12px;color:var(--muted)">Aún no se ha registrado ningún cliente.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
+const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
+let sedeId=null,sesion=null,clientesSesion=[];
+
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+
+function toast(m,t='info'){const e=document.getElementById('toast');e.textContent=m;e.className=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+
+async function api(path,options={}){
+  const headers={...apiHeaders,...(options.headers||{})};
+  Object.keys(headers).forEach(k=>headers[k]===undefined&&delete headers[k]);
+  const r=await fetch(`${API}${path}`,{...options,headers});
+  if(!r.ok){let msg=`HTTP ${r.status}`;try{const d=await r.json();msg=d.message||d.mensaje||JSON.stringify(d)}catch(e){}throw new Error(msg)}
+  if(r.status===204)return null;
+  const text=await r.text();if(!text)return null;
+  try{return JSON.parse(text)}catch(e){return text}
+}
+
+function renderClientes(){
+  const box=document.getElementById('clientes-list');
+  if(!clientesSesion.length){box.innerHTML='<div style="font-size:12px;color:var(--muted)">Aún no se ha registrado ningún cliente.</div>';return}
+  box.innerHTML=clientesSesion.map(c=>`
+    <div class="cliente-item">
+      <div class="cliente-nombre">${c.nombre}</div>
+      <div class="cliente-meta">📞 ${c.telefono}${c.email?' · '+c.email:''}</div>
+      <div class="cliente-meta" style="color:var(--green);margin-top:3px">✓ Registrado</div>
+    </div>`).join('');
+}
+
+async function registrarCliente(){
+  const nombre=document.getElementById('cl-nombre').value.trim();
+  const telefono=document.getElementById('cl-tel').value.trim();
+  const email=document.getElementById('cl-email').value.trim();
+  if(nombre.length<3)return toast('Nombre mínimo 3 caracteres','error');
+  if(telefono.length<10||telefono.length>15)return toast('Teléfono de 10 a 15 dígitos','error');
+  try{
+    const res=await api('/api/clientes/guardar',{method:'POST',body:JSON.stringify({nombre,telefono,email})});
+    clientesSesion.unshift({nombre,telefono,email});
+    ['cl-nombre','cl-tel','cl-email'].forEach(id=>document.getElementById(id).value='');
+    renderClientes();
+    toast(typeof res==='string'?res:'Cliente guardado','success');
+  }catch(e){toast(e.message||'No se pudo registrar cliente','error')}
+}
+
+// Init
+(function(){
+  try{sesion=JSON.parse(localStorage.getItem('tere_session')||'null')}catch(e){}
+  if(!sesion?.sedeId){document.getElementById('no-sesion').style.display='flex';return}
+  sedeId=sesion.sedeId;
+  document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId]||('Sede '+sedeId);
+})();
+</script>
+</body>
+</html>

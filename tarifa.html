@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>TERE · Gestión de Tarifas por Sede</title>
+  <style>
+    :root {
+      --bg: #0b0d11;
+      --bg2: #12151a;
+      --accent: #4dabff;
+      --green: #40e0d0;
+      --red: #ff5e7e;
+      --text: #d8dee9;
+      --muted: #717b91;
+      --border: #2d3544;
+      --card-bg: #0f1118;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg2);
+      border-bottom: 2px solid var(--accent);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--accent);
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.75rem;
+    }
+
+    .clock {
+      font-family: monospace;
+      background: #0a0c10;
+      padding: 6px 14px;
+      border-radius: 32px;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    /* Navegación */
+    .nav-bar {
+      background: var(--bg2);
+      padding: 8px 24px;
+      display: flex;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 32px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      text-decoration: none;
+      background: #1a1e26;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    /* Main container */
+    .container {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .card-body {
+      padding: 28px 24px;
+    }
+
+    /* Sede selector */
+    .sede-selector {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 12px 16px;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .sede-label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .sede-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sede-btn {
+      background: #1a1e26;
+      border: 1px solid var(--border);
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .sede-btn.active-sede {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(77, 171, 255, 0.4);
+    }
+
+    .sede-btn:hover:not(.active-sede) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Formulario tarifas */
+    .tarifas-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    .input-field {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: monospace;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(77, 171, 255, 0.2);
+    }
+
+    .input-field:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+    }
+
+    .info-label {
+      color: var(--muted);
+    }
+
+    .info-value {
+      font-weight: 700;
+      color: var(--green);
+      font-family: monospace;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #3b8ad9;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      border-top-color: #000;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg2);
+      border-left: 4px solid var(--accent);
+      backdrop-filter: blur(8px);
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      max-width: 340px;
+    }
+    #toast.success { border-left-color: var(--green); }
+    #toast.error { border-left-color: var(--red); }
+
+    /* No sesión */
+    #no-sesion {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      display: none;
+    }
+    .alert-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--red);
+      border-radius: 20px;
+      padding: 32px;
+      width: 340px;
+      text-align: center;
+    }
+
+    hr {
+      border-color: var(--border);
+      margin: 8px 0;
+    }
+
+    @media (max-width: 580px) {
+      .container { padding: 0 16px; margin: 24px auto; }
+      .card-body { padding: 20px 16px; }
+      .sede-buttons { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="no-sesion">
+  <div class="alert-box">
+    <div style="font-size: 24px; font-weight: 700; color: var(--red); margin-bottom: 12px;">🔐 Sin sesión activa</div>
+    <div style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Inicia sesión en el kiosco primero para gestionar tarifas.</div>
+    <a href="index.html" class="btn btn-primary" style="display: inline-block; text-decoration: none; width: auto; padding: 12px 24px;">IR AL KIOSCO</a>
+  </div>
+</div>
+
+<header>
+  <div class="logo">TERE · <span id="sedeIdDisplay">Tarifas</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn" href="index.html">Kiosco</a>
+    <a class="nav-btn" href="pension.html">Pensión</a>
+    <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn" href="sedes.html">Sedes</a>
+    <a class="nav-btn active" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div class="clock" id="liveClock">--:--:--</div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2>💰 Tarifa por hora / pensión</h2>
+      <p>Consulta y actualiza los costos específicos por cada sede</p>
+    </div>
+    <div class="card-body">
+
+      <!-- Selector de sede -->
+      <div class="sede-selector">
+        <span class="sede-label">📍 Sede actual:</span>
+        <div class="sede-buttons" id="sedeButtons">
+          <button class="sede-btn" data-sede="1">🏬 Zona Mercado</button>
+          <button class="sede-btn" data-sede="2">🏭 Zona Comercial</button>
+          <button class="sede-btn" data-sede="3">🏙️ Zona Concurrida</button>
+        </div>
+      </div>
+
+      <!-- Info sede seleccionada -->
+      <div class="info-row" style="margin-bottom: 24px;">
+        <span class="info-label">ID Sede activa</span>
+        <span class="info-value" id="sedeIdDisplay">—</span>
+      </div>
+
+      <form id="tarifasForm">
+        <div class="tarifas-form">
+          <div class="input-group">
+            <label>💵 Costo por hora (MXN)</label>
+            <input type="number" step="0.01" min="0" class="input-field" id="costoHora" placeholder="Ej: 25.00">
+          </div>
+          <div class="input-group">
+            <label>📆 Costo pensión mensual (MXN)</label>
+            <input type="number" step="0.01" min="0" class="input-field" id="costoPension" placeholder="Ej: 450.00">
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">🆔 ID Tarifa (automático)</span>
+            <span class="info-value" id="idTarifaSpan">—</span>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" id="refreshBtn" style="flex:1">⟳ Recargar tarifa</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn" style="flex:2">💾 Actualizar tarifas</button>
+          </div>
+        </div>
+      </form>
+
+      <hr style="margin: 24px 0 12px 0;">
+      <div style="font-size: 0.7rem; text-align: center; color: var(--muted);">
+        ⚡ Las tarifas son independientes por sede. Al actualizar, se modifica el costo por hora y pensión para la sede seleccionada.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ---------- CONFIGURACIÓN ----------
+  const API_BASE = 'https://jellyfish-app-b5lgm.ondigitalocean.app';
+  const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+  };
+
+  // Estado global
+  let currentSedeId = null;         // 1,2,3
+  let currentTarifaData = null;     // objeto completo de tarifa
+  let sesionActiva = null;
+
+  // Elementos DOM
+  const sedeButtons = document.querySelectorAll('.sede-btn');
+  const sedeIdDisplay = document.getElementById('sedeIdDisplay');
+  const costoHoraInput = document.getElementById('costoHora');
+  const costoPensionInput = document.getElementById('costoPension');
+  const idTarifaSpan = document.getElementById('idTarifaSpan');
+  const saveBtn = document.getElementById('saveBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const tarifasForm = document.getElementById('tarifasForm');
+  const noSesionDiv = document.getElementById('no-sesion');
+
+  // ---------- UTILS ----------
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = type;
+    toast.style.display = 'block';
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3500);
+  }
+
+  function formatMoney(value) {
+    if (value === undefined || value === null) return '0.00';
+    return Number(value).toFixed(2);
+  }
+
+  function updateSedeUI() {
+    if (!currentSedeId) {
+      sedeIdDisplay.textContent = '—';
+      return;
+    }
+    sedeIdDisplay.textContent = currentSedeId;
+    // Marcar botón activo
+    sedeButtons.forEach(btn => {
+      const sedeVal = parseInt(btn.getAttribute('data-sede'), 10);
+      if (sedeVal === currentSedeId) {
+        btn.classList.add('active-sede');
+      } else {
+        btn.classList.remove('active-sede');
+      }
+    });
+  }
+
+  // ---------- API GATEWAY ----------
+  async function apiRequest(path, options = {}) {
+    const headers = { ...DEFAULT_HEADERS, ...(options.headers || {}) };
+    Object.keys(headers).forEach(k => headers[k] === undefined && delete headers[k]);
+    const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    
+    // Para casos de respuesta vacía (204)
+    if (response.status === 204) return null;
+    
+    let body = null;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      body = await response.json();
+    } else {
+      body = await response.text();
+    }
+    
+    if (!response.ok) {
+      let errorMsg = `Error ${response.status}`;
+      if (typeof body === 'string') errorMsg = body;
+      else if (body && (body.message || body.mensaje)) errorMsg = body.message || body.mensaje;
+      else if (body && typeof body === 'object') errorMsg = JSON.stringify(body);
+      throw new Error(errorMsg || `HTTP ${response.status}`);
+    }
+    return body;
+  }
+
+  // Obtener tarifa actual desde backend
+  async function fetchTarifa(sedeId) {
+    if (!sedeId) return null;
+    try {
+      const tarifa = await apiRequest(`/api/tarifas/${sedeId}`, { headers: { 'Content-Type': undefined } });
+      if (!tarifa || !tarifa.idTarifa) {
+        console.warn('Tarifa no encontrada o estructura inválida', tarifa);
+        return null;
+      }
+      return tarifa;
+    } catch (err) {
+      console.error('Error al obtener tarifa:', err);
+      throw err;
+    }
+  }
+
+  // Actualizar/Crear tarifa vía PUT (endpoint /api/tarifas/{idSede})
+  async function updateTarifa(sedeId, costoHora, costoPension, idTarifa) {
+    // Construir DTO según TarifaActualizarDto
+    const payload = {
+      idTarifa: idTarifa || null,      // si no existe, el backend debería crearlo, pero según tu controlador PUT espera idTarifa existente.
+      sede: sedeId,
+      costoHora: parseFloat(costoHora),
+      costoPension: parseFloat(costoPension)
+    };
+    // validar que los campos numéricos sean válidos
+    if (isNaN(payload.costoHora)) payload.costoHora = 0;
+    if (isNaN(payload.costoPension)) payload.costoPension = 0;
+    
+    const responseText = await apiRequest(`/api/tarifas/${sedeId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+    return responseText;
+  }
+
+  // Cargar y mostrar tarifa en el formulario
+  async function loadTarifaToForm(sedeId) {
+    if (!sedeId) return;
+    // Mostrar loading visual
+    costoHoraInput.disabled = true;
+    costoPensionInput.disabled = true;
+    saveBtn.disabled = true;
+    idTarifaSpan.textContent = '⟳ cargando...';
+    costoHoraInput.placeholder = 'Cargando...';
+    costoPensionInput.placeholder = 'Cargando...';
+    
+    try {
+      const tarifa = await fetchTarifa(sedeId);
+      if (tarifa && tarifa.idTarifa) {
+        currentTarifaData = tarifa;
+        // Asignar valores al formulario
+        costoHoraInput.value = tarifa.costoHora != null ? formatMoney(tarifa.costoHora) : '';
+        costoPensionInput.value = tarifa.costoPension != null ? formatMoney(tarifa.costoPension) : '';
+        idTarifaSpan.textContent = tarifa.idTarifa;
+        showToast(`Tarifa de sede ${sedeId} cargada correctamente`, 'success');
+      } else {
+        // No existe tarifa para esta sede? Según tu base hay una por sede. Si no existe mostrar campos vacíos
+        currentTarifaData = null;
+        costoHoraInput.value = '';
+        costoPensionInput.value = '';
+        idTarifaSpan.textContent = 'No registrada';
+        showToast(`No se encontró tarifa para sede ${sedeId}. Puede crearla al actualizar.`, 'info');
+      }
+    } catch (err) {
+      console.error(err);
+      costoHoraInput.value = '';
+      costoPensionInput.value = '';
+      idTarifaSpan.textContent = 'Error';
+      showToast(`❌ No se pudo cargar tarifa: ${err.message.substring(0, 100)}`, 'error');
+    } finally {
+      costoHoraInput.disabled = false;
+      costoPensionInput.disabled = false;
+      saveBtn.disabled = false;
+      costoHoraInput.placeholder = 'Ej: 20.00';
+      costoPensionInput.placeholder = 'Ej: 500.00';
+    }
+  }
+
+  // Acción: actualizar tarifa (guardar)
+  async function handleUpdateTarifa(event) {
+    event.preventDefault();
+    if (!currentSedeId) {
+      showToast('Seleccione una sede primero', 'error');
+      return;
+    }
+    
+    const costoHoraVal = parseFloat(costoHoraInput.value);
+    const costoPensionVal = parseFloat(costoPensionInput.value);
+    
+    if (isNaN(costoHoraVal) || costoHoraVal < 0) {
+      showToast('Ingrese un costo por hora válido (número ≥ 0)', 'error');
+      return;
+    }
+    if (isNaN(costoPensionVal) || costoPensionVal < 0) {
+      showToast('Ingrese un costo de pensión válido (número ≥ 0)', 'error');
+      return;
+    }
+    
+    // Preparamos el idTarifa si existe (del objeto cargado) o null
+    const idTarifaExistente = currentTarifaData?.idTarifa || null;
+    
+    saveBtn.disabled = true;
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+    
+    try {
+      const result = await updateTarifa(currentSedeId, costoHoraVal, costoPensionVal, idTarifaExistente);
+      // Vuelve a cargar la tarifa actualizada para refrescar ID y valores reales
+      await loadTarifaToForm(currentSedeId);
+      showToast(`✅ Tarifa actualizada para Sede ${currentSedeId}. Costo hora: $${costoHoraVal.toFixed(2)} / Pensión: $${costoPensionVal.toFixed(2)}`, 'success');
+    } catch (err) {
+      console.error(err);
+      let errorMsg = err.message || 'No se pudo actualizar la tarifa';
+      if (errorMsg.includes('400') || errorMsg.toLowerCase().includes('bad request')) {
+        errorMsg = 'Error en los datos enviados. Verifique que la tarifa exista o los valores sean válidos.';
+      }
+      showToast(`❌ ${errorMsg}`, 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalText;
+    }
+  }
+
+  // Cambio de sede
+  async function onSelectSede(sedeId) {
+    if (currentSedeId === sedeId) return;
+    currentSedeId = sedeId;
+    updateSedeUI();
+    // Reset campos y cargar nueva tarifa
+    costoHoraInput.value = '';
+    costoPensionInput.value = '';
+    idTarifaSpan.textContent = '—';
+    await loadTarifaToForm(currentSedeId);
+  }
+
+  // Inicializar eventos y comprobar sesión
+  function checkSessionAndInit() {
+    try {
+      const sessionRaw = localStorage.getItem('tere_session');
+      if (sessionRaw) {
+        sesionActiva = JSON.parse(sessionRaw);
+        if (sesionActiva && sesionActiva.sedeId) {
+          // Si existe sesión, podemos tomar la sede del usuario o dejar que seleccione. 
+          // Por diseño, permitimos cambiar entre sedes para el panel de tarifas (independiente de la sesión pero se necesita autenticación implícita)
+          // Mostramos interfaz normal
+          noSesionDiv.style.display = 'none';
+          // Seleccionar primera sede por defecto o la de la sesión? Elegimos la sede almacenada en sesión como preselección.
+          const defaultSede = sesionActiva.sedeId || 1;
+          currentSedeId = defaultSede;
+          updateSedeUI();
+          loadTarifaToForm(currentSedeId);
+          return;
+        }
+      }
+      // No hay sesión válida
+      noSesionDiv.style.display = 'flex';
+    } catch(e) {
+      console.error(e);
+      noSesionDiv.style.display = 'flex';
+    }
+  }
+
+  // Event listeners
+  function bindEvents() {
+    // Botones sede
+    sedeButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const sedeVal = parseInt(btn.getAttribute('data-sede'), 10);
+        if (!isNaN(sedeVal)) onSelectSede(sedeVal);
+      });
+    });
+    
+    // Botón refrescar
+    refreshBtn.addEventListener('click', async () => {
+      if (!currentSedeId) {
+        showToast('Seleccione una sede', 'error');
+        return;
+      }
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = '<span class="loading-spinner"></span> Cargando';
+      await loadTarifaToForm(currentSedeId);
+      refreshBtn.disabled = false;
+      refreshBtn.innerHTML = '⟳ Recargar tarifa';
+    });
+    
+    // Envío del formulario
+    tarifasForm.addEventListener('submit', handleUpdateTarifa);
+  }
+  
+  // Reloj en vivo
+  function initClock() {
+    setInterval(() => {
+      const clockDiv = document.getElementById('liveClock');
+      if (clockDiv) {
+        const now = new Date();
+        clockDiv.textContent = now.toLocaleTimeString('es-MX', { hour12: false });
+      }
+    }, 1000);
+  }
+
+  // Arranque
+  function init() {
+    initClock();
+    bindEvents();
+    checkSessionAndInit();
+    // Pequeño helper adicional: si la sesión es nula, el div bloquea toda interacción
+  }
+
+  init();
+</script>
+</body>
+</html>

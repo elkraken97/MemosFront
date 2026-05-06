@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Kiosco</title>
+<style>
+:root{--bg:#0b0d11;--bg2:#12151a;--accent:#4dabff;--green:#40e0d0;--red:#ff5e7e;--text:#d8dee9;--muted:#717b91}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:700;color:var(--accent)}
+.app{display:flex;flex:1;height:calc(100vh - 48px)}
+.sidebar{width:320px;background:var(--bg2);padding:15px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;border-right:1px solid #2d3544}
+.main{flex:1;padding:20px;display:flex;justify-content:center;align-items:flex-start;background:#0a0c10}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1e26;border:1px solid #2d3544;border-radius:6px;padding:10px;text-align:center}
+.stat-n{font-size:22px;font-weight:700}.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--accent)}
+.stat-l{font-size:9px;color:var(--muted)}
+input,select{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;color:var(--text);font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{width:100%;padding:12px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;text-transform:uppercase}
+.btn-p{background:var(--accent);color:#000}.btn-d{background:transparent;color:var(--red);border:1px solid var(--red)}
+.lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.info{background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;text-align:center;font-size:16px;font-weight:700;color:var(--accent)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+.tab{padding:8px;text-align:center;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;background:#1a1e26;color:var(--muted);border:1px solid #2d3544}
+.tab.active{background:var(--accent);color:#000}
+.nav-links{display:flex;gap:6px}
+.nav-btn{padding:6px 14px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid #2d3544;background:#1a1e26;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.panel{display:none;flex-direction:column;gap:10px}.panel.active{display:flex}
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300}
+.login-box{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--accent);border-radius:8px;padding:30px;width:320px}
+.login-title{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.login-sub{font-size:10px;color:var(--muted);margin-bottom:20px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
+#toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
+#parking{display:flex;flex-direction:column;gap:8px;background:#0f1115;padding:20px;border-radius:10px}
+.fila{display:flex;gap:8px;align-items:center;justify-content:center}
+.fila-lbl{width:35px;text-align:center;font-size:11px;color:rgba(255,255,255,.15);font-weight:700;letter-spacing:1px}
+.cajon{width:65px;height:65px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;gap:2px;border:2px solid transparent}
+.cajon.libre{background:rgba(16,185,129,.08);color:var(--green);border-color:rgba(16,185,129,.2)}
+.cajon.libre:hover{background:rgba(16,185,129,.18);transform:scale(1.05);box-shadow:0 0 12px rgba(16,185,129,.15)}
+.cajon.ocupado{background:rgba(239,68,68,.08);color:var(--red);border-color:rgba(239,68,68,.15);cursor:not-allowed}
+.cajon.sel{background:rgba(77,171,255,.12);border-color:var(--accent);box-shadow:0 0 15px rgba(77,171,255,.25)}
+.cajon-icon{font-size:18px}
+.registro-view{width:min(980px,100%);background:#0f1115;padding:18px;border-radius:10px;display:flex;flex-direction:column;gap:14px}
+.registro-head{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #2d3544;padding-bottom:12px}
+.registro-title{font-size:18px;font-weight:700;color:var(--accent)}
+.registro-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.registro-section{background:var(--bg);border:1px solid #2d3544;border-radius:6px;overflow:hidden}
+.registro-section h3{font-size:12px;text-transform:uppercase;color:var(--muted);padding:10px;border-bottom:1px solid #2d3544}
+.registro-list{display:flex;flex-direction:column;max-height:520px;overflow:auto}
+.registro-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-bottom:1px solid #202632;font-size:12px}
+.registro-item:last-child{border-bottom:none}
+.registro-main{font-weight:700;color:var(--text)}
+.registro-meta{color:var(--muted);margin-top:3px;font-size:11px}
+.registro-amount{font-weight:700;color:var(--green);text-align:right}
+.registro-pill{display:inline-block;font-size:10px;text-transform:uppercase;color:#000;background:var(--accent);border-radius:4px;padding:3px 6px;margin-left:5px}
+.registro-pill.off{background:var(--muted);color:#000}
+.corte-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:11px;color:var(--muted)}
+@media(max-width:780px){.registro-grid{grid-template-columns:1fr}.registro-head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">TERE</div>
+    <div class="login-sub">KIOSCO OPERADOR</div>
+    <div><div class="lbl">Sede</div><select id="login-sede"><option value="1">Zona Mercado</option><option value="2">Zona Comercial</option><option value="3">Zona Concurrida</option></select></div>
+    <div style="margin-top:10px"><div class="lbl">Usuario</div><input type="text" id="login-user" placeholder="operador"></div>
+    <div style="margin-top:10px"><div class="lbl">Contraseña</div><input type="text" id="login-pass" placeholder="••••"></div>
+    <button class="btn btn-p" style="margin-top:15px" onclick="iniciar()">INICIAR</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">TERE · <span style="color:var(--muted);font-size:13px" id="sede-nombre">--</span></div>
+  <nav class="nav-links">
+    <a class="nav-btn active" href="index.html">Kiosco</a>
+    <a class="nav-btn" href="pension.html">Pensión</a>
+    <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="registros.html">Registros</a>
+    <a class="nav-btn" href="sedes.html">Sedes</a>
+    <a class="nav-btn" href="tarifa.html">Tarifas</a>
+    <a class="nav-btn" href="pdf.html">Reportes</a>
+    <a class="nav-btn" href="registroCliente.html">Usuarios</a>
+    <a class="nav-btn" href="Plus/portada.html">Plus</a>
+  </nav>
+  <div id="clock" style="color:var(--accent)">--:--:--</div>
+</header>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="stats"><div class="stat"><div class="stat-n g" id="libres">0</div><div class="stat-l">Libres</div></div><div class="stat"><div class="stat-n r" id="ocupados">0</div><div class="stat-l">Ocupados</div></div><div class="stat"><div class="stat-n b" id="pension">0</div><div class="stat-l">Pensión</div></div></div>
+  <div class="tabs"><div class="tab active" onclick="cambiarTab('entrada')">Entrada</div><div class="tab" onclick="cambiarTab('salida')">Salida</div></div>
+
+  <div class="panel active" id="panel-entrada">
+    <div><div class="lbl">Placa</div><input type="text" id="placa" placeholder="ABC-123" maxlength="10" oninput="this.value=this.value.toUpperCase()"></div>
+    <div><div class="lbl">Cajón</div><div class="info" id="cajon-sel">— Ninguno</div></div>
+    <button class="btn btn-p" onclick="entrada()">REGISTRAR ENTRADA</button>
+  </div>
+
+  <div class="panel" id="panel-salida">
+    <div><div class="lbl">Buscar placa</div><input type="text" id="buscar" placeholder="ABC-123" maxlength="10" oninput="this.value=this.value.toUpperCase();buscarSalida()"></div>
+    <div id="info-salida" style="display:none;background:var(--bg);padding:10px;font-size:12px;border-radius:4px"></div>
+    <div id="conv-box" style="display:none;background:var(--bg);padding:10px;border-radius:4px"><div class="lbl">Código convenio</div><input type="text" id="codigo" placeholder="EMP001" oninput="this.value=this.value.toUpperCase()"><button class="btn" style="background:var(--accent);color:#000;margin-top:5px" onclick="aplicarConv()">APLICAR</button><div id="conv-msg" style="font-size:11px;margin-top:4px"></div></div>
+    <div id="total-box" style="display:none;background:var(--bg);padding:12px;text-align:center;border-radius:4px"><div style="font-size:10px;color:var(--muted)">TOTAL</div><div style="font-size:26px;font-weight:700;color:var(--green)" id="total-txt">$0</div></div>
+    <button class="btn btn-d" onclick="salida()">FINALIZAR</button>
+  </div>
+
+  <div style="margin-top:8px;padding:10px;background:var(--bg);border-radius:6px;display:none" id="admin-config">
+    <div class="lbl">⚙️ Configurar cajones</div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <input type="number" id="cfg-filas" placeholder="Filas" value="4" min="1" max="10" style="width:50%">
+      <input type="number" id="cfg-columnas" placeholder="Columnas" value="6" min="1" max="10" style="width:50%">
+    </div>
+    <button class="btn" style="background:var(--accent);color:#000;margin-top:6px" onclick="generarCajones()">REGENERAR</button>
+  </div>
+</aside>
+<main class="main"><div id="parking"><div style="color:var(--muted);padding:40px">CARGANDO...</div></div></main>
+</div>
+<div id="toast"></div>
+
+<script>
+const API='http://localhost:8080';
+let sedeId=null,cajones=[],cajonSel=null,cajonSal=null,total=0,desc=0,conv=null,modoPension=false;
+setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
+
+function iniciar(){
+  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pass').value;
+  if(!u||!p)return toast('Completa los campos','error');
+  if((u!=='operador'||p!=='op123')&&(u!=='admin'||p!=='admin123'))return toast('Credenciales incorrectas','error');
+  if(u==='admin')document.getElementById('admin-config').style.display='block';
+  sedeId=parseInt(document.getElementById('login-sede').value);
+  document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId];
+  document.getElementById('login-screen').style.display='none';
+  cargar();
+}
+
+async function cargar(){
+  try{
+    const r=await fetch(`${API}/api/cajones/${sedeId}`,{headers:{'ngrok-skip-browser-warning':'true'}});
+    cajones=await r.json();
+    pintarMapa();
+    actualizarStats();
+  }catch(e){
+    console.error(e);
+    document.getElementById('parking').innerHTML='<div style="color:var(--red);padding:40px">ERROR AL CARGAR</div>';
+  }
+}
+
+function pintarMapa(){
+  const p=document.getElementById('parking');p.innerHTML='';
+  const filas=[...new Set(cajones.map(c=>c.fila))];
+  filas.forEach(f=>{
+    const d=document.createElement('div');d.className='fila';
+    const l=document.createElement('div');l.className='fila-lbl';l.textContent='F'+f;d.appendChild(l);
+    cajones.filter(c=>c.fila==f).forEach(c=>{
+      const e=document.createElement('div');
+      e.className='cajon '+(c.disponible?'libre':'ocupado')+(cajonSel===c.idCajon?' sel':'');
+      e.innerHTML='<div class="cajon-icon">'+(c.disponible?'':'🚗')+'</div><div>'+c.numeroCajon+'</div>';
+      if(c.disponible)e.onclick=()=>{cajonSel=c.idCajon;if(modoPension)document.getElementById('np-cajon').textContent=c.numeroCajon;else document.getElementById('cajon-sel').textContent=c.numeroCajon;pintarMapa()}
+      d.appendChild(e);
+    });p.appendChild(d);
+  });
+}
+
+function actualizarStats(){
+  document.getElementById('libres').textContent=cajones.filter(c=>c.disponible).length;
+  document.getElementById('ocupados').textContent=cajones.filter(c=>!c.disponible).length;
+}
+
+function cambiarTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['entrada','salida'][i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  modoPension=false;cajonSel=null;pintarMapa();
+}
+
+async function generarCajones(){
+  const f=parseInt(document.getElementById('cfg-filas').value)||4,c=parseInt(document.getElementById('cfg-columnas').value)||6;
+  if(!confirm(`¿Regenerar ${f} filas × ${c} columnas = ${f*c} cajones?`))return;
+  await fetch(`${API}/api/cajones/generar/${sedeId}`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({filas:f,columnas:c})});
+  setTimeout(cargar,600);
+  toast('✅ '+f*c+' cajones','success');
+}
+
+async function entrada(){
+  const placa=document.getElementById('placa').value.trim();if(!placa||!cajonSel)return toast('Falta placa o cajón','error');
+  await fetch(`${API}/api/registro/entrada`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({placa,idCajon:cajonSel,idSede:sedeId,tipoServicio:document.getElementById('tipo').value})});
+  const c=cajones.find(x=>x.idCajon===cajonSel);if(c){c.disponible=false;c.placa=placa}
+  cajonSel=null;document.getElementById('placa').value='';document.getElementById('cajon-sel').textContent='— Ninguno';pintarMapa();actualizarStats();toast('✓ '+placa,'success');
+}
+
+async function regPension(){
+  const n=document.getElementById('np-nombre').value.trim(),p=document.getElementById('np-placa').value.trim();
+  const t=document.getElementById('np-tel').value.trim(),e=document.getElementById('np-email').value.trim(),f=document.getElementById('np-fecha').value;
+  if(!n||!p||!f||!cajonSel)return toast('Completa todos los campos','error');
+  await fetch(`${API}/api/pensiones/registrar`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({nombre:n,placa:p,telefono:t,email:e,fechaFin:f,idCajon:cajonSel,idSede:sedeId})});
+  const c=cajones.find(x=>x.idCajon===cajonSel);if(c){c.disponible=false;c.placa=p}
+  cajonSel=null;['np-nombre','np-placa','np-tel','np-email','np-fecha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('np-cajon').textContent='— Selecciona en mapa';pintarMapa();actualizarStats();toast('✓ '+n,'success');
+}
+
+function buscarSalida(){
+  const placa=document.getElementById('buscar').value.trim();['conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+  if(placa.length<3){document.getElementById('info-salida').style.display='none';cajonSal=null;return}
+  const c=cajones.find(x=>x.placa&&x.placa.toUpperCase()===placa&&!x.disponible);
+  if(c){cajonSal=c.idCajon;total=Math.floor(Math.random()*4+1)*20;desc=0;
+    document.getElementById('info-salida').style.display='block';document.getElementById('info-salida').innerHTML='🚗 '+c.placa+' · '+c.numeroCajon+'<br>~'+total/20+'h · $'+total;
+    document.getElementById('conv-box').style.display='block';document.getElementById('codigo').value='';document.getElementById('conv-msg').textContent='';
+    document.getElementById('total-box').style.display='block';document.getElementById('total-txt').textContent='$'+total;
+  }else{document.getElementById('info-salida').style.display='block';document.getElementById('info-salida').innerHTML='No encontrado';cajonSal=null}
+}
+
+function aplicarConv(){
+  const c=document.getElementById('codigo').value.trim().toUpperCase();
+  const convs={EMP001:'AutoZone',EMP002:'Pavitos',EMP004:'Hotel Orizaba',EMP005:'Cinemex'};
+  if(!c||!convs[c]){document.getElementById('conv-msg').innerHTML='✗ Inválido';document.getElementById('conv-msg').style.color='var(--red)';return}
+  desc=20;total=Math.max(0,total-desc);conv={codigo:c,empresa:convs[c]};
+  document.getElementById('conv-msg').innerHTML='✓ '+convs[c]+' -$'+desc;document.getElementById('conv-msg').style.color='var(--green)';
+  document.getElementById('total-txt').textContent='$'+total;document.getElementById('total-txt').style.color='var(--accent)';
+}
+
+async function salida(){
+  const placa=document.getElementById('buscar').value.trim();if(!placa||!cajonSal)return toast('Busca placa primero','error');
+  await fetch(`${API}/api/registro/salida`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({placa,idSede:sedeId})});
+  if(conv&&desc>0)await fetch(`${API}/api/convenio/descuento`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({idConvenio:1,monto:desc,placa})});
+  const c=cajones.find(x=>x.idCajon===cajonSal);if(c){c.disponible=true;c.placa=null}
+  document.getElementById('buscar').value='';['info-salida','conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('codigo').value='';document.getElementById('conv-msg').textContent='';cajonSal=null;total=0;desc=0;conv=null;pintarMapa();actualizarStats();toast('✓ Salida','success');
+}
+
+let _tt;function toast(m,t='info'){const e=document.getElementById('toast');e.textContent=m;e.className=t;e.style.display='block';clearTimeout(_tt);_tt=setTimeout(()=>e.style.display='none',2500)}
+</script>
+<script>
+let pensiones=[],tarifaActual=null,usuarioActual=null,registroActivo=null,buscarTimer=null;
+const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
+
+async function api(path,options={}){
+  const headers={...apiHeaders,...(options.headers||{})};
+  Object.keys(headers).forEach(k=>headers[k]===undefined&&delete headers[k]);
+  const r=await fetch(`${API}${path}`,{...options,headers});
+  if(!r.ok){
+    let msg=`HTTP ${r.status}`;
+    try{const data=await r.json();msg=data.message||data.mensaje||JSON.stringify(data)}catch(e){try{msg=await r.text()}catch(_){}}
+    throw new Error(msg||`HTTP ${r.status}`);
+  }
+  if(r.status===204)return null;
+  const text=await r.text();
+  if(!text)return null;
+  try{return JSON.parse(text)}catch(e){return text}
+}
+
+function money(v){
+  const n=Number(v||0);
+  return '$'+n.toFixed(n%1?2:0);
+}
+
+function minsFrom(date){
+  const t=date?new Date(date).getTime():NaN;
+  return Number.isFinite(t)?Math.max(1,Math.ceil((Date.now()-t)/60000)):0;
+}
+
+function hourlyRate(){
+  if(!tarifaActual)return 0;
+  for(const k of ['montoHora','precioHora','costoHora','tarifaHora','costoPorHora','monto','precio','tarifa']){
+    const v=Number(tarifaActual[k]);
+    if(v>0)return v;
+  }
+  return 0;
+}
+
+function estimatedTotal(horaEntrada){
+  const rate=hourlyRate(),mins=minsFrom(horaEntrada);
+  return rate&&mins?Math.ceil(mins/60)*rate:0;
+}
+
+iniciar=async function(){
+  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pass').value;
+  if(!u||!p)return toast('Completa los campos','error');
+  try{
+    usuarioActual=await api('/api/usuarios/login',{method:'POST',body:JSON.stringify({email:u,password:p})});
+    sedeId=usuarioActual.idSede||parseInt(document.getElementById('login-sede').value);
+    if(usuarioActual.rol==='ADMIN')document.getElementById('admin-config').style.display='block';
+  }catch(e){
+    return toast(e.message||'Credenciales incorrectas','error');
+  }
+  document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId]||('Sede '+sedeId);
+  localStorage.setItem('tere_session',JSON.stringify({sedeId,usuario:usuarioActual}));
+  document.getElementById('login-screen').style.display='none';
+  cargar();
+}
+
+cargar=async function(){
+  try{
+    const [cs,ps,tf]=await Promise.all([
+      api(`/api/cajones/${sedeId}`,{headers:{'Content-Type':undefined}}),
+      api(`/api/pensiones/sede/${sedeId}`,{headers:{'Content-Type':undefined}}).catch(()=>[]),
+      api(`/api/tarifas/${sedeId}`,{headers:{'Content-Type':undefined}}).catch(()=>null)
+    ]);
+    cajones=cs||[];
+    pensiones=ps||[];
+    tarifaActual=tf;
+    pintarMapa();
+    actualizarStats();
+  }catch(e){
+    console.error(e);
+    document.getElementById('parking').innerHTML='<div style="color:var(--red);padding:40px">ERROR AL CARGAR</div>';
+  }
+}
+
+actualizarStats=function(){
+  document.getElementById('libres').textContent=cajones.filter(c=>c.disponible).length;
+  document.getElementById('ocupados').textContent=cajones.filter(c=>!c.disponible).length;
+  document.getElementById('pension').textContent=pensiones.filter(p=>!p.estado||p.estado==='ACTIVA').length;
+}
+
+generarCajones=async function(){
+  const f=parseInt(document.getElementById('cfg-filas').value)||4,c=parseInt(document.getElementById('cfg-columnas').value)||6;
+  if(!confirm(`Regenerar ${f} filas x ${c} columnas = ${f*c} cajones?`))return;
+  try{
+    const res=await api(`/api/cajones/generar/${sedeId}`,{method:'POST',body:JSON.stringify({filas:f,columnas:c})});
+    await cargar();
+    toast('OK '+(res?.total||f*c)+' cajones','success');
+  }catch(e){toast(e.message||'No se pudo generar','error')}
+}
+
+entrada=async function(){
+  const placa=document.getElementById('placa').value.trim();
+  if(!placa||!cajonSel)return toast('Falta placa o cajon','error');
+  if(!usuarioActual?.idUsuario)return toast('Usuario no identificado','error');
+  try{
+    const res=await api('/api/registro/entrada',{method:'POST',body:JSON.stringify({
+      placa,idCajon:cajonSel,idSede:sedeId,idUsuario:usuarioActual.idUsuario,tipoServicio:document.getElementById('tipo').value
+    })});
+    cajonSel=null;
+    document.getElementById('placa').value='';
+    document.getElementById('cajon-sel').textContent='-- Ninguno';
+    await cargar();
+    toast(res?.mensaje||('Entrada '+placa),'success');
+  }catch(e){toast(e.message||'No se pudo registrar','error')}
+}
+
+regPension=async function(){
+  const n=document.getElementById('np-nombre').value.trim(),p=document.getElementById('np-placa').value.trim();
+  const t=document.getElementById('np-tel').value.trim(),e=document.getElementById('np-email').value.trim(),f=document.getElementById('np-fecha').value;
+  if(!n||!p||!f||!cajonSel)return toast('Completa todos los campos','error');
+  try{
+    const res=await api('/api/pensiones/registrar',{method:'POST',body:JSON.stringify({nombre:n,placa:p,telefono:t,email:e,fechaFin:f,idCajon:cajonSel})});
+    cajonSel=null;
+    ['np-nombre','np-placa','np-tel','np-email','np-fecha'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('np-cajon').textContent='-- Selecciona en mapa';
+    await cargar();
+    toast(res?.mensaje||('Pension '+n),'success');
+  }catch(err){toast(err.message||'No se pudo registrar pension','error')}
+}
+
+registrarCliente=async function(){
+  const nombre=document.getElementById('cl-nombre').value.trim();
+  const telefono=document.getElementById('cl-tel').value.trim();
+  const email=document.getElementById('cl-email').value.trim();
+  if(nombre.length<3)return toast('Nombre minimo 3 caracteres','error');
+  if(telefono.length<10||telefono.length>15)return toast('Telefono de 10 a 15 digitos','error');
+  try{
+    const res=await api('/api/clientes/guardar',{method:'POST',body:JSON.stringify({nombre,telefono,email})});
+    ['cl-nombre','cl-tel','cl-email'].forEach(id=>document.getElementById(id).value='');
+    toast(typeof res==='string'?res:'Cliente guardado','success');
+  }catch(e){toast(e.message||'No se pudo registrar cliente','error')}
+}
+
+buscarSalida=function(){
+  clearTimeout(buscarTimer);
+  buscarTimer=setTimeout(buscarSalidaApi,350);
+}
+
+async function buscarSalidaApi(){
+  const placa=document.getElementById('buscar').value.trim();
+  ['conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+  if(placa.length<3){document.getElementById('info-salida').style.display='none';cajonSal=null;registroActivo=null;return}
+  try{
+    registroActivo=await api(`/api/registro/activo?placa=${encodeURIComponent(placa)}&idSede=${sedeId}`,{headers:{'Content-Type':undefined}});
+    const c=cajones.find(x=>(x.placa&&x.placa.toUpperCase()===placa)||x.numeroCajon===registroActivo.numeroCajon);
+    cajonSal=c?.idCajon||registroActivo.numeroCajon;
+    total=estimatedTotal(registroActivo.horaEntrada);
+    desc=0;
+    conv=null;
+    const mins=minsFrom(registroActivo.horaEntrada),amount=total?money(total):'Por calcular';
+    document.getElementById('info-salida').style.display='block';
+    document.getElementById('info-salida').innerHTML='Auto '+registroActivo.placa+' · '+registroActivo.numeroCajon+'<br>~'+mins+' min · '+amount;
+    document.getElementById('conv-box').style.display='block';
+    document.getElementById('codigo').value='';
+    document.getElementById('conv-msg').textContent='';
+    document.getElementById('total-box').style.display='block';
+    document.getElementById('total-txt').textContent=amount;
+  }catch(e){
+    document.getElementById('info-salida').style.display='block';
+    document.getElementById('info-salida').innerHTML='No encontrado';
+    cajonSal=null;
+    registroActivo=null;
+  }
+}
+
+aplicarConv=async function(){
+  const c=document.getElementById('codigo').value.trim().toUpperCase();
+  if(!c){document.getElementById('conv-msg').innerHTML='Invalido';document.getElementById('conv-msg').style.color='var(--red)';return}
+  try{
+    const res=await api(`/api/convenio/buscar/${encodeURIComponent(c)}`,{headers:{'Content-Type':undefined}});
+    if(!res?.activo)throw new Error('Convenio inactivo');
+    desc=Math.min(total||20,20);
+    total=Math.max(0,total-desc);
+    conv=res;
+    document.getElementById('conv-msg').innerHTML='OK '+res.nombre+' -'+money(desc);
+    document.getElementById('conv-msg').style.color='var(--green)';
+    document.getElementById('total-txt').textContent=total?money(total):'Por calcular';
+    document.getElementById('total-txt').style.color='var(--accent)';
+  }catch(e){
+    document.getElementById('conv-msg').innerHTML='Invalido';
+    document.getElementById('conv-msg').style.color='var(--red)';
+  }
+}
+
+salida=async function(){
+  const placa=document.getElementById('buscar').value.trim();
+  if(!placa||!cajonSal)return toast('Busca placa primero','error');
+  try{
+    const res=await api('/api/registro/salida',{method:'POST',body:JSON.stringify({placa,idSede:sedeId})});
+    if(conv&&desc>0)await api('/api/convenio/descuento',{method:'POST',body:JSON.stringify({idConvenio:conv.idConvenio,monto:desc,placa})});
+    document.getElementById('buscar').value='';
+    ['info-salida','conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+    document.getElementById('codigo').value='';
+    document.getElementById('conv-msg').textContent='';
+    cajonSal=null;registroActivo=null;total=0;desc=0;conv=null;
+    await cargar();
+    toast((res?.mensaje||'Salida')+' '+money(res?.totalCobrado),'success');
+  }catch(e){toast(e.message||'No se pudo finalizar','error')}
+}
+</script>
+<script>
+let registros=[],cortes=[],registrosSesion=[],cortesLocales=[];
+
+function fmtDate(v){
+  if(!v)return '--';
+  const d=new Date(v);
+  return Number.isFinite(d.getTime())?d.toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'}):String(v);
+}
+
+function estadoActivo(r){
+  return r.abierto===true||String(r.estado||'').toLowerCase()==='activo'||!r.horaSalida;
+}
+
+function registroTotal(r){
+  return r.totalCobrado??r.tarifaAplicada??r.total??0;
+}
+
+function registroHtml(r,activo){
+  const salida=activo?'Activo':fmtDate(r.horaSalida);
+  const total=activo?'--':money(registroTotal(r));
+  return `<div class="registro-item">
+    <div>
+      <div class="registro-main">${r.placa||'SIN PLACA'} <span class="registro-pill ${activo?'':'off'}">${activo?'Activo':'No activo'}</span></div>
+      <div class="registro-meta">Cajon ${r.numeroCajon||'--'} · ${r.tipoServicio||'regular'}</div>
+      <div class="registro-meta">Entrada ${fmtDate(r.horaEntrada)} · Salida ${salida}</div>
+    </div>
+    <div class="registro-amount">${total}</div>
+  </div>`;
+}
+
+function renderRegistros(){
+  const activos=registros.filter(estadoActivo);
+  const noActivos=registros.filter(r=>!estadoActivo(r));
+  const ingresos=noActivos.reduce((s,r)=>s+Number(registroTotal(r)||0),0);
+  document.getElementById('reg-resumen').textContent=`${activos.length} activos · ${noActivos.length} no activos · ${money(ingresos)}`;
+  document.getElementById('parking').innerHTML=`<div class="registro-view">
+    <div class="registro-head">
+      <div><div class="registro-title">Registros de la sede</div><div class="registro-meta">${document.getElementById('sede-nombre').textContent}</div></div>
+      <button class="btn btn-p" style="width:auto;padding:10px 14px" onclick="cargarRegistros()">Actualizar</button>
+    </div>
+    <div class="registro-grid">
+      <section class="registro-section"><h3>Activos (${activos.length})</h3><div class="registro-list">${activos.map(r=>registroHtml(r,true)).join('')||'<div class="registro-item"><div class="registro-meta">Sin registros activos</div></div>'}</div></section>
+      <section class="registro-section"><h3>No activos (${noActivos.length})</h3><div class="registro-list">${noActivos.map(r=>registroHtml(r,false)).join('')||'<div class="registro-item"><div class="registro-meta">Sin registros cerrados</div></div>'}</div></section>
+    </div>
+  </div>`;
+}
+
+function renderCortes(){
+  const box=document.getElementById('cortes-list');
+  if(!box)return;
+  box.innerHTML=(cortes||[]).slice(0,5).map(c=>`<div>Corte #${c.idCorte||'--'} · ${fmtDate(c.fecha)} · ${money(c.totalIngresos)} · ${c.totalRegistros||0} reg.</div>`).join('')||'<div>Sin cortes registrados</div>';
+}
+
+async function cargarCortes(){
+  cortes=cortesLocales;
+  renderCortes();
+}
+
+async function cargarRegistros(){
+  if(!sedeId)return;
+  document.getElementById('parking').innerHTML='<div style="color:var(--muted);padding:40px">CARGANDO REGISTROS...</div>';
+  const activos=cajones.filter(c=>!c.disponible).map(c=>({placa:c.placa,numeroCajon:c.numeroCajon,estado:'activo',abierto:true,tipoServicio:c.tipo||'regular'}));
+  registros=[...activos,...registrosSesion];
+  await cargarCortes();
+  renderRegistros();
+}
+
+async function hacerCorteCaja(){
+  if(!confirm('Realizar corte de caja manual para esta sede?'))return;
+  const cerrados=registros.filter(r=>!estadoActivo(r));
+  const total=cerrados.reduce((s,r)=>s+Number(registroTotal(r)||0),0);
+  const corte={idCorte:cortesLocales.length+1,fecha:new Date().toISOString(),totalIngresos:total,totalRegistros:cerrados.length};
+  cortesLocales=[corte,...cortesLocales];
+  cortes=cortesLocales;
+  renderCortes();
+  toast('Corte de caja registrado','success');
+}
+
+const salidaBase=salida;
+salida=async function(){
+  const placa=document.getElementById('buscar').value.trim();
+  const anterior=registroActivo?{...registroActivo}:cajones.find(c=>c.placa&&c.placa.toUpperCase()===placa);
+  const totalAntes=total;
+  await salidaBase();
+  if(placa&&document.getElementById('buscar').value===''&&anterior){
+    registrosSesion.unshift({
+      placa:anterior.placa||placa,
+      numeroCajon:anterior.numeroCajon,
+      tipoServicio:anterior.tipoServicio||anterior.tipo||'regular',
+      estado:'finalizado',
+      abierto:false,
+      horaEntrada:anterior.horaEntrada,
+      horaSalida:new Date().toISOString(),
+      tarifaAplicada:totalAntes
+    });
+  }
+}
+
+cambiarTab=function(t){
+  const tabs=['entrada','salida'];
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',tabs[i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  modoPension=false;
+  cajonSel=null;
+  pintarMapa();
+}
+</script>
+<script>
+let registrosLocales=[];
+
+function findLocalActivo(placa){
+  const p=String(placa||'').toUpperCase();
+  return registrosLocales.find(r=>r.abierto&&String(r.placa||'').toUpperCase()===p);
+}
+
+function mergePlacasLocales(){
+  cajones.forEach(c=>{
+    const local=registrosLocales.find(r=>r.abierto&&r.idCajon===c.idCajon);
+    if(local)c.placa=local.placa;
+  });
+}
+
+const cargarAnterior=cargar;
+cargar=async function(){
+  await cargarAnterior();
+  mergePlacasLocales();
+  if(document.getElementById('panel-registros')?.classList.contains('active'))cargarRegistros();
+}
+
+entrada=async function(){
+  const placa=document.getElementById('placa').value.trim().toUpperCase();
+  if(!placa||!cajonSel)return toast('Falta placa o cajon','error');
+  if(!usuarioActual?.idUsuario)return toast('Usuario no identificado','error');
+  const idCajon=cajonSel;
+  const cajon=cajones.find(c=>c.idCajon===idCajon);
+  try{
+    const res=await api('/api/registro/entrada',{method:'POST',body:JSON.stringify({
+      placa,idCajon,idSede:sedeId,idUsuario:usuarioActual.idUsuario,tipoServicio:'regular'
+    })});
+    registrosLocales=registrosLocales.filter(r=>!(r.abierto&&r.idCajon===idCajon));
+    registrosLocales.unshift({
+      idRegistro:res?.idRegistro,
+      placa,
+      idCajon,
+      numeroCajon:res?.numeroCajon||cajon?.numeroCajon,
+      tipoServicio:'regular',
+      estado:'activo',
+      abierto:true,
+      horaEntrada:new Date().toISOString()
+    });
+    if(cajon){cajon.disponible=false;cajon.placa=placa}
+    cajonSel=null;
+    document.getElementById('placa').value='';
+    document.getElementById('cajon-sel').textContent='-- Ninguno';
+    pintarMapa();actualizarStats();
+    toast(res?.mensaje||('Entrada '+placa),'success');
+  }catch(e){toast(e.message||'No se pudo registrar entrada','error')}
+}
+
+async function buscarSalidaApi(){
+  const placa=document.getElementById('buscar').value.trim().toUpperCase();
+  ['conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+  if(placa.length<3){document.getElementById('info-salida').style.display='none';cajonSal=null;registroActivo=null;return}
+  try{
+    registroActivo=await api(`/api/registro/activo?placa=${encodeURIComponent(placa)}&idSede=${sedeId}`,{headers:{'Content-Type':undefined}});
+  }catch(e){
+    registroActivo=findLocalActivo(placa);
+  }
+  if(!registroActivo){
+    document.getElementById('info-salida').style.display='block';
+    document.getElementById('info-salida').innerHTML='No encontrado';
+    cajonSal=null;
+    return;
+  }
+  const c=cajones.find(x=>(x.placa&&x.placa.toUpperCase()===placa)||x.idCajon===registroActivo.idCajon||x.numeroCajon===registroActivo.numeroCajon);
+  cajonSal=c?.idCajon||registroActivo.idCajon||registroActivo.numeroCajon;
+  total=estimatedTotal(registroActivo.horaEntrada)||20;
+  desc=0;conv=null;
+  const mins=minsFrom(registroActivo.horaEntrada),amount=money(total);
+  document.getElementById('info-salida').style.display='block';
+  document.getElementById('info-salida').innerHTML='Auto '+placa+' · '+(registroActivo.numeroCajon||c?.numeroCajon||'--')+'<br>~'+mins+' min · '+amount;
+  document.getElementById('conv-box').style.display='block';
+  document.getElementById('codigo').value='';
+  document.getElementById('conv-msg').textContent='';
+  document.getElementById('total-box').style.display='block';
+  document.getElementById('total-txt').textContent=amount;
+}
+
+salida=async function(){
+  const placa=document.getElementById('buscar').value.trim().toUpperCase();
+  if(!placa||!cajonSal)return toast('Busca placa primero','error');
+  const local=findLocalActivo(placa);
+  const actual=registroActivo||local;
+  const cobro=total;
+  try{
+    const res=await api('/api/registro/salida',{method:'POST',body:JSON.stringify({placa,idSede:sedeId})});
+    if(conv&&desc>0)await api('/api/convenio/descuento',{method:'POST',body:JSON.stringify({idConvenio:conv.idConvenio,monto:desc,placa})});
+    const idx=registrosLocales.findIndex(r=>r.abierto&&String(r.placa||'').toUpperCase()===placa);
+    if(idx>=0){
+      registrosLocales[idx]={...registrosLocales[idx],estado:'finalizado',abierto:false,horaSalida:new Date().toISOString(),tarifaAplicada:res?.totalCobrado??cobro};
+    }else if(actual){
+      registrosLocales.unshift({...actual,placa,estado:'finalizado',abierto:false,horaSalida:new Date().toISOString(),tarifaAplicada:res?.totalCobrado??cobro});
+    }
+    const c=cajones.find(x=>x.idCajon===cajonSal||x.idCajon===actual?.idCajon||x.numeroCajon===actual?.numeroCajon);
+    if(c){c.disponible=true;c.placa=null}
+    document.getElementById('buscar').value='';
+    ['info-salida','conv-box','total-box'].forEach(id=>document.getElementById(id).style.display='none');
+    document.getElementById('codigo').value='';
+    document.getElementById('conv-msg').textContent='';
+    cajonSal=null;registroActivo=null;total=0;desc=0;conv=null;
+    pintarMapa();actualizarStats();
+    toast((res?.mensaje||'Salida')+' '+money(res?.totalCobrado??cobro),'success');
+  }catch(e){toast(e.message||'No se pudo finalizar','error')}
+}
+
+cargarRegistros=async function(){
+  if(!sedeId)return;
+  mergePlacasLocales();
+  const activosLocales=registrosLocales.filter(r=>r.abierto);
+  const activosMapa=cajones.filter(c=>!c.disponible&&!activosLocales.some(r=>r.idCajon===c.idCajon)).map(c=>({
+    placa:c.placa||'SIN PLACA',
+    idCajon:c.idCajon,
+    numeroCajon:c.numeroCajon,
+    estado:'activo',
+    abierto:true,
+    tipoServicio:c.tipo||'regular'
+  }));
+  registros=[...activosLocales,...activosMapa,...registrosLocales.filter(r=>!r.abierto)];
+  await cargarCortes();
+  renderRegistros();
+}
+</script>
+</body>
+</html>
