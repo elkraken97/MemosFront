@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERE · Iniciar sesión</title>
+  <style>
+    :root {
+      --bg: #0b0d11;
+      --bg2: #12151a;
+      --accent: #4dabff;
+      --green: #40e0d0;
+      --red: #ff5e7e;
+      --text: #d8dee9;
+      --muted: #717b91;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-box {
+      background: var(--bg2);
+      border: 1px solid #2d3544;
+      border-top: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 30px;
+      width: 340px;
+    }
+    .login-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .lbl {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid #2d3544;
+      border-radius: 4px;
+      padding: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-transform: uppercase;
+      margin-top: 18px;
+    }
+    .btn-p {
+      background: var(--accent);
+      color: #000;
+    }
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg2);
+      border-left: 4px solid var(--accent);
+      padding: 14px 20px;
+      font-size: 12px;
+      display: none;
+      z-index: 1000;
+    }
+    #toast.error { border-color: var(--red); }
+    #toast.success { border-color: var(--green); }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <div class="login-title">TERE</div>
+  <div class="login-sub">INICIO DE SESIÓN</div>
+
+  <div class="lbl">Correo electrónico</div>
+  <input type="email" id="email" placeholder="usuario@ejemplo.com" autocomplete="email">
+
+  <div class="lbl">Contraseña</div>
+  <input type="password" id="password" placeholder="••••••" autocomplete="current-password">
+
+  <button class="btn btn-p" onclick="login()">INICIAR SESIÓN</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080';
+
+  async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      return toast('Completa todos los campos', 'error');
+    }
+
+    try {
+      const response = await fetch(`${API}/api/usuarios/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Credenciales incorrectas');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || data.mensaje || `Error ${response.status}`);
+      }
+
+      const usuario = await response.json();
+
+      // Guardar datos de sesión
+      const session = {
+        idUsuario: usuario.idUsuario,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        idSede: usuario.idSede,
+        sedeId: usuario.idSede,
+        rol: usuario.rol
+      };
+      localStorage.setItem('tere_session', JSON.stringify(session));
+
+      toast('Inicio de sesión exitoso', 'success');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 800);
+
+    } catch (error) {
+      toast(error.message || 'Error al iniciar sesión', 'error');
+    }
+  }
+
+  let _tt;
+  function toast(m, t = 'info') {
+    const e = document.getElementById('toast');
+    e.textContent = m;
+    e.className = t;
+    e.style.display = 'block';
+    clearTimeout(_tt);
+    _tt = setTimeout(() => e.style.display = 'none', 2500);
+  }
+</script>
+
+</body>
+</html>

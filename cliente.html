@@ -16,7 +16,8 @@ header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:12px 
 .nav-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .content{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
 .card{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--accent);border-radius:10px;padding:28px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px}
-.card-title{font-size:18px;font-weight:700;color:var(--accent);padding-bottom:12px;border-bottom:1px solid #2d3544}
+.card-title{font-size:18px;font-weight:700;color:var(--accent);padding-bottom:12px;border-bottom:1px solid #2d3544;display:flex;justify-content:space-between;align-items:center}
+.card-title-count{font-size:11px;font-weight:400;color:var(--muted);background:var(--bg);border:1px solid #2d3544;border-radius:20px;padding:2px 10px}
 input{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;color:var(--text);font-size:14px;outline:none}
 input:focus{border-color:var(--accent)}
 .btn{width:100%;padding:12px;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;text-transform:uppercase}
@@ -26,10 +27,13 @@ input:focus{border-color:var(--accent)}
 #toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
 #no-sesion{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300;display:none}
 .alert-box{background:var(--bg2);border:1px solid #2d3544;border-top:3px solid var(--red);border-radius:8px;padding:30px;width:320px;text-align:center}
-.clientes-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.clientes-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
 .cliente-item{background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:10px;font-size:12px}
 .cliente-nombre{font-weight:700;color:var(--text)}
 .cliente-meta{color:var(--muted);font-size:11px;margin-top:2px}
+.loading{font-size:12px;color:var(--muted);text-align:center;padding:20px 0}
+.search-input{width:100%;background:var(--bg);border:1px solid #2d3544;border-radius:4px;padding:8px 10px;color:var(--text);font-size:12px;outline:none;margin-bottom:4px}
+.search-input:focus{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -48,6 +52,7 @@ input:focus{border-color:var(--accent)}
     <a class="nav-btn" href="index.html">Kiosco</a>
     <a class="nav-btn" href="pension.html">Pensión</a>
     <a class="nav-btn active" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="vehiculos.html">Vehículos</a>
     <a class="nav-btn" href="registros.html">Registros</a>
     <a class="nav-btn" href="sedes.html">Sedes</a>
     <a class="nav-btn" href="tarifa.html">Tarifas</a>
@@ -59,7 +64,7 @@ input:focus{border-color:var(--accent)}
 </header>
 
 <div class="content">
-  <div style="display:flex;gap:24px;width:100%;max-width:900px;align-items:flex-start">
+  <div style="display:flex;gap:24px;width:100%;max-width:960px;align-items:flex-start">
 
     <!-- Formulario -->
     <div class="card" style="flex:0 0 440px">
@@ -71,11 +76,15 @@ input:focus{border-color:var(--accent)}
       <button class="btn btn-d" onclick="window.location.href='index.html'">← VOLVER AL KIOSCO</button>
     </div>
 
-    <!-- Lista de registrados en sesión -->
+    <!-- Lista completa desde la API -->
     <div class="card" style="flex:1;min-width:0">
-      <div class="card-title">Registrados esta sesión</div>
+      <div class="card-title">
+        Clientes registrados
+        <span class="card-title-count" id="clientes-count">0</span>
+      </div>
+      <input class="search-input" type="text" id="cl-buscar" placeholder="🔍  Buscar por nombre o teléfono…" oninput="filtrarClientes()">
       <div class="clientes-list" id="clientes-list">
-        <div style="font-size:12px;color:var(--muted)">Aún no se ha registrado ningún cliente.</div>
+        <div class="loading">Cargando clientes…</div>
       </div>
     </div>
 
@@ -86,7 +95,8 @@ input:focus{border-color:var(--accent)}
 <script>
 const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
 const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
-let sedeId=null,sesion=null,clientesSesion=[];
+let sedeId=null,sesion=null;
+let todosLosClientes=[]; // cache local de la lista completa
 
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
 
@@ -102,15 +112,42 @@ async function api(path,options={}){
   try{return JSON.parse(text)}catch(e){return text}
 }
 
-function renderClientes(){
+function renderClientes(lista){
   const box=document.getElementById('clientes-list');
-  if(!clientesSesion.length){box.innerHTML='<div style="font-size:12px;color:var(--muted)">Aún no se ha registrado ningún cliente.</div>';return}
-  box.innerHTML=clientesSesion.map(c=>`
+  if(!lista.length){
+    box.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 0">No se encontraron clientes.</div>';
+    return;
+  }
+  box.innerHTML=lista.map(c=>`
     <div class="cliente-item">
       <div class="cliente-nombre">${c.nombre}</div>
-      <div class="cliente-meta">📞 ${c.telefono}${c.email?' · '+c.email:''}</div>
-      <div class="cliente-meta" style="color:var(--green);margin-top:3px">✓ Registrado</div>
+      <div class="cliente-meta">📞 ${c.telefono}${c.email?' · 📧 '+c.email:''}</div>
+      <div class="cliente-meta" style="color:var(--muted);margin-top:2px">ID #${c.idCliente}</div>
     </div>`).join('');
+}
+
+function filtrarClientes(){
+  const q=document.getElementById('cl-buscar').value.trim().toLowerCase();
+  if(!q){renderClientes(todosLosClientes);return;}
+  const filtrados=todosLosClientes.filter(c=>
+    c.nombre.toLowerCase().includes(q)||
+    c.telefono.includes(q)
+  );
+  renderClientes(filtrados);
+}
+
+async function cargarClientes(){
+  document.getElementById('clientes-list').innerHTML='<div class="loading">Cargando clientes…</div>';
+  try{
+    const lista=await api('/api/clientes/listaRegulares');
+    // La API devuelve el más reciente al final; invertimos para mostrar más nuevos primero
+    todosLosClientes=(lista||[]).reverse();
+    document.getElementById('clientes-count').textContent=todosLosClientes.length;
+    filtrarClientes(); // respeta búsqueda activa si la hubiera
+  }catch(e){
+    document.getElementById('clientes-list').innerHTML=
+      `<div style="font-size:12px;color:var(--red);text-align:center;padding:20px 0">Error al cargar: ${e.message}</div>`;
+  }
 }
 
 async function registrarCliente(){
@@ -121,10 +158,9 @@ async function registrarCliente(){
   if(telefono.length<10||telefono.length>15)return toast('Teléfono de 10 a 15 dígitos','error');
   try{
     const res=await api('/api/clientes/guardar',{method:'POST',body:JSON.stringify({nombre,telefono,email})});
-    clientesSesion.unshift({nombre,telefono,email});
     ['cl-nombre','cl-tel','cl-email'].forEach(id=>document.getElementById(id).value='');
-    renderClientes();
     toast(typeof res==='string'?res:'Cliente guardado','success');
+    await cargarClientes(); // refresca la lista completa desde la API
   }catch(e){toast(e.message||'No se pudo registrar cliente','error')}
 }
 
@@ -134,6 +170,7 @@ async function registrarCliente(){
   if(!sesion?.sedeId){document.getElementById('no-sesion').style.display='flex';return}
   sedeId=sesion.sedeId;
   document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId]||('Sede '+sedeId);
+  cargarClientes();
 })();
 </script>
 </body>

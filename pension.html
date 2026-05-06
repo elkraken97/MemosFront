@@ -30,9 +30,15 @@ input:focus,select:focus{border-color:var(--accent)}
 .cajon{width:65px;height:65px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;gap:2px;border:2px solid transparent}
 .cajon.libre{background:rgba(16,185,129,.08);color:var(--green);border-color:rgba(16,185,129,.2)}
 .cajon.libre:hover{background:rgba(16,185,129,.18);transform:scale(1.05)}
-.cajon.ocupado{background:rgba(239,68,68,.08);color:var(--red);border-color:rgba(239,68,68,.15);cursor:not-allowed}
+.cajon.ocupado{background:rgba(239,68,68,.08);color:var(--red);border-color:rgba(239,68,68,.15);cursor:pointer}  /* ahora es cliqueable */
 .cajon.sel{background:rgba(77,171,255,.12);border-color:var(--accent);box-shadow:0 0 15px rgba(77,171,255,.25)}
 .cajon-icon{font-size:18px}
+.pension-lista{background:var(--bg);border:1px solid #2d3544;border-radius:6px;padding:8px}
+.pension-lista-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #202632;font-size:11px}
+.pension-lista-item:last-child{border-bottom:none}
+.pension-nombre{font-weight:700;color:var(--text)}
+.pension-placa{color:var(--muted);font-size:10px}
+.pension-fecha{color:var(--accent);font-size:10px}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border-left:4px solid var(--accent);padding:14px 20px;font-size:12px;display:none;z-index:1000}
 #toast.success{border-color:var(--green)}#toast.error{border-color:var(--red)}
 #no-sesion{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:300;display:none}
@@ -55,6 +61,7 @@ input:focus,select:focus{border-color:var(--accent)}
     <a class="nav-btn" href="index.html">Kiosco</a>
     <a class="nav-btn active" href="pension.html">Pensión</a>
     <a class="nav-btn" href="cliente.html">Cliente</a>
+    <a class="nav-btn" href="vehiculos.html">Vehículos</a>
     <a class="nav-btn" href="registros.html">Registros</a>
     <a class="nav-btn" href="sedes.html">Sedes</a>
     <a class="nav-btn" href="tarifa.html">Tarifas</a>
@@ -73,9 +80,23 @@ input:focus,select:focus{border-color:var(--accent)}
     <div><div class="lbl">Teléfono</div><input type="text" id="np-tel" placeholder="2721234567"></div>
     <div><div class="lbl">Email</div><input type="text" id="np-email" placeholder="correo@ejemplo.com"></div>
     <div><div class="lbl">Vence</div><input type="date" id="np-fecha"></div>
-    <div><div class="lbl">Cajón seleccionado</div><div class="info" id="np-cajon">— Selecciona en mapa →</div></div>
+    <div>
+      <div class="lbl">Cajón</div>
+      <div class="info" id="np-cajon">— Selecciona en mapa →</div>
+    </div>
     <button class="btn btn-p" onclick="regPension()">REGISTRAR PENSIÓN</button>
     <button class="btn btn-d" onclick="window.location.href='index.html'">← VOLVER AL KIOSCO</button>
+
+    <!-- Lista de pensionados activos -->
+    <div class="pension-lista" id="pension-lista-container">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;justify-content:space-between;">
+        <span>📋 Pensionados</span>
+        <button class="btn" style="background:transparent;border:1px solid var(--accent);color:var(--accent);padding:2px 8px;font-size:10px;" onclick="cargarPensionados()">↻</button>
+      </div>
+      <div id="pension-lista">
+        <div class="pension-lista-item" style="color:var(--muted)">Cargando...</div>
+      </div>
+    </div>
   </aside>
   <main class="main">
     <div id="parking"><div style="color:var(--muted);padding:40px">CARGANDO...</div></div>
@@ -84,9 +105,10 @@ input:focus,select:focus{border-color:var(--accent)}
 <div id="toast"></div>
 
 <script>
-const API='https://jellyfish-app-b5lgm.ondigitalocean.app';
+const API='http://localhost:8080'; // ajusta si usas otro dominio
 const apiHeaders={'Content-Type':'application/json','ngrok-skip-browser-warning':'true'};
-let sedeId=null,cajones=[],cajonSel=null,sesion=null;
+let sedeId=null, cajones=[], cajonSel=null, sesion=null;
+let modoOcupado = false; // indica si se está mostrando info de un cajón ocupado
 
 setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-MX',{hour12:false}),1000);
 
@@ -103,6 +125,25 @@ async function api(path,options={}){
   try{return JSON.parse(text)}catch(e){return text}
 }
 
+// ========== Manejo del cajón (libre/ocupado) ==========
+function mostrarInfoOcupado(cajon) {
+  modoOcupado = true;
+  cajonSel = null;
+  const el = document.getElementById('np-cajon');
+  el.innerHTML = `<span style="color:var(--red);">Ocupado:</span> ${cajon.placa || 'Sin placa'} · Cajón ${cajon.numeroCajon}`;
+  el.style.borderColor = 'var(--red)';
+  el.style.color = 'var(--red)';
+}
+
+function resetearSeleccionCajon() {
+  modoOcupado = false;
+  cajonSel = null;
+  const el = document.getElementById('np-cajon');
+  el.textContent = '— Selecciona en mapa →';
+  el.style.borderColor = '#2d3544';
+  el.style.color = 'var(--accent)';
+}
+
 function pintarMapa(){
   const p=document.getElementById('parking');p.innerHTML='';
   const wrap=document.createElement('div');
@@ -113,16 +154,35 @@ function pintarMapa(){
     const l=document.createElement('div');l.className='fila-lbl';l.textContent='F'+f;d.appendChild(l);
     cajones.filter(c=>c.fila==f).forEach(c=>{
       const e=document.createElement('div');
+      const ocupado = !c.disponible;
       e.className='cajon '+(c.disponible?'libre':'ocupado')+(cajonSel===c.idCajon?' sel':'');
       e.innerHTML='<div class="cajon-icon">'+(c.disponible?'':'🚗')+'</div><div>'+c.numeroCajon+'</div>';
-      if(c.disponible)e.onclick=()=>{cajonSel=c.idCajon;document.getElementById('np-cajon').textContent=c.numeroCajon;pintarMapa()};
+
+      if (c.disponible) {
+        e.onclick = () => {
+          cajonSel = c.idCajon;
+          resetearSeleccionCajon();
+          document.getElementById('np-cajon').textContent = c.numeroCajon;
+          document.getElementById('np-cajon').style.color = 'var(--accent)';
+          document.getElementById('np-cajon').style.borderColor = '#2d3544';
+          modoOcupado = false;
+          pintarMapa();
+        };
+      } else {
+        // Cajón ocupado: mostrar placa
+        e.onclick = () => {
+          mostrarInfoOcupado(c);
+          pintarMapa(); // para quitar .sel si lo había
+        };
+      }
       d.appendChild(e);
     });wrap.appendChild(d);
   });
   p.appendChild(wrap);
 }
 
-async function cargar(){
+// ========== Carga de datos ==========
+async function cargarCajones(){
   try{
     const r=await fetch(`${API}/api/cajones/${sedeId}`,{headers:{'ngrok-skip-browser-warning':'true'}});
     cajones=await r.json();
@@ -132,31 +192,87 @@ async function cargar(){
   }
 }
 
-async function regPension(){
-  const n=document.getElementById('np-nombre').value.trim(),p=document.getElementById('np-placa').value.trim();
-  const t=document.getElementById('np-tel').value.trim(),e=document.getElementById('np-email').value.trim(),f=document.getElementById('np-fecha').value;
-  if(!n||!p||!f||!cajonSel)return toast('Completa todos los campos y selecciona un cajón','error');
-  try{
-    const res=await api('/api/pensiones/registrar',{method:'POST',body:JSON.stringify({nombre:n,placa:p,telefono:t,email:e,fechaFin:f,idCajon:cajonSel,idSede:sedeId})});
-    const c=cajones.find(x=>x.idCajon===cajonSel);if(c){c.disponible=false;c.placa=p}
-    cajonSel=null;
-    ['np-nombre','np-placa','np-tel','np-email','np-fecha'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('np-cajon').textContent='— Selecciona en mapa →';
-    pintarMapa();
-    toast(res?.mensaje||('Pensión registrada: '+n),'success');
-  }catch(err){toast(err.message||'No se pudo registrar pensión','error')}
+async function cargarPensionados() {
+  const lista = document.getElementById('pension-lista');
+  lista.innerHTML = '<div class="pension-lista-item" style="color:var(--muted)">Cargando...</div>';
+  try {
+    const data = await api(`/api/pensiones/sede/${sedeId}`);
+    if (!data || data.length === 0) {
+      lista.innerHTML = '<div class="pension-lista-item" style="color:var(--muted)">No hay pensionados activos</div>';
+      return;
+    }
+    lista.innerHTML = data.map(p => `
+      <div class="pension-lista-item">
+        <div>
+          <div class="pension-nombre">${escapeHtml(p.nombre)}</div>
+          <div class="pension-placa">${p.placa || '---'} · Estado: ${p.estado}</div>
+        </div>
+        <div class="pension-fecha">Vence ${p.fechaFin ? new Date(p.fechaFin).toLocaleDateString('es-MX') : '---'}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    lista.innerHTML = `<div class="pension-lista-item" style="color:var(--red)">Error al cargar: ${e.message}</div>`;
+  }
 }
 
-// Init: check session
+function escapeHtml(str) {
+  return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+}
+
+// ========== Registro de pensión ==========
+async function regPension(){
+  const nombre = document.getElementById('np-nombre').value.trim();
+  const placa = document.getElementById('np-placa').value.trim();
+  const telefono = document.getElementById('np-tel').value.trim();
+  const email = document.getElementById('np-email').value.trim();
+  const fecha = document.getElementById('np-fecha').value;
+
+  if (!nombre || !placa || !fecha || !cajonSel) {
+    return toast('Completa todos los campos y selecciona un cajón libre', 'error');
+  }
+
+  try {
+    const res = await api('/api/pensiones/registrar', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre,
+        placa,
+        telefono,
+        email,
+        fechaFin: fecha, // formato ISO "yyyy-MM-dd" funciona con LocalDate
+        idCajon: cajonSel,
+        idSede: sedeId
+      })
+    });
+    // Marcar el cajón como ocupado localmente
+    const c = cajones.find(x => x.idCajon === cajonSel);
+    if (c) { c.disponible = false; c.placa = placa; }
+
+    cajonSel = null;
+    ['np-nombre','np-placa','np-tel','np-email','np-fecha'].forEach(id => document.getElementById(id).value='');
+    resetearSeleccionCajon();
+    pintarMapa();
+    cargarPensionados(); // recargar lista
+    toast(res?.mensaje || ('Pensión registrada: ' + nombre), 'success');
+  } catch (err) {
+    toast(err.message || 'No se pudo registrar pensión', 'error');
+  }
+}
+
+// ========== Inicialización ==========
 (function(){
-  try{sesion=JSON.parse(localStorage.getItem('tere_session')||'null')}catch(e){}
-  if(!sesion?.sedeId){
-    document.getElementById('no-sesion').style.display='flex';
+  // Validar sesión
+  try { sesion = JSON.parse(localStorage.getItem('tere_session') || 'null'); } catch(e) {}
+  if (!sesion?.idSede) {
+    document.getElementById('no-sesion').style.display = 'flex';
     return;
   }
-  sedeId=sesion.sedeId;
-  document.getElementById('sede-nombre').textContent={1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId]||('Sede '+sedeId);
-  cargar();
+  sedeId = sesion.idSede;
+  document.getElementById('sede-nombre').textContent = {1:'Zona Mercado',2:'Zona Comercial',3:'Zona Concurrida'}[sedeId] || ('Sede '+sedeId);
+
+  // Carga inicial
+  cargarCajones();
+  cargarPensionados();
 })();
 </script>
 </body>
